@@ -1,0 +1,265 @@
+2019-05-22 20:08:28,183 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-22 20:08:28,301 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-22 20:08:28,301 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-22 20:08:28,403 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-22 20:08:28,483 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-22 20:08:28,725 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-22 20:08:28,769 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-22 20:08:28,776 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-22 20:08:29,007 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-22 20:08:29,251 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-22 20:09:00,278 [INFO ] step 11 ... wrote activities to disk.
+2019-05-22 20:09:25,053 [INFO ] step 12 ... wrote activities by sector to disk.
+2019-05-22 20:09:25,070 [INFO ] step 13 ... corrected some of the country names.
+2019-05-22 20:10:02,124 [INFO ] step 14 ... wrote activities by region to disk.
+2019-05-22 20:10:02,124 [INFO ] .... PROCESSING COMPLETED SUCCESSFULLY.
+2019-05-26 08:00:28,541 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-26 08:00:29,066 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-26 08:00:29,067 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-26 08:00:29,282 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-26 08:00:29,432 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-26 08:00:29,931 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-26 08:00:30,019 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-26 08:00:30,070 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-26 08:00:30,504 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-26 08:00:30,908 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-26 08:04:30,723 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-26 08:04:30,892 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-26 08:04:30,893 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-26 08:04:31,020 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-26 08:04:31,100 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-26 08:04:31,351 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-26 08:04:31,399 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-26 08:04:31,402 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-26 08:04:31,638 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-26 08:04:31,869 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-26 08:04:42,371 [INFO ] setp 11 ... wrote iati-identifiers and their active years to disk.
+2019-05-26 08:05:35,836 [INFO ] step 12 ... wrote activities to disk.
+2019-05-26 08:06:02,147 [INFO ] step 13 ... wrote activities by sector to disk.
+2019-05-26 08:06:02,158 [INFO ] step 14 ... corrected some of the country names.
+2019-05-26 08:06:40,252 [INFO ] step 15 ... wrote activities by region to disk.
+2019-05-26 08:06:40,252 [INFO ] .... PROCESSING COMPLETED SUCCESSFULLY.
+2019-05-26 09:00:08,089 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-26 09:00:08,223 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-26 09:00:08,223 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-26 09:00:08,346 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-26 09:00:08,439 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-26 09:00:08,730 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-26 09:00:08,783 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-26 09:00:08,791 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-26 09:00:09,091 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-26 09:00:09,351 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-26 09:00:17,314 [INFO ] setp 11 ... wrote iati-identifiers and their active years to disk.
+2019-05-26 09:00:52,033 [INFO ] step 12 ... wrote activities to disk.
+2019-05-26 09:01:17,265 [INFO ] step 13 ... wrote activities by sector to disk.
+2019-05-26 09:01:17,279 [INFO ] step 14 ... corrected some of the country names.
+2019-05-26 09:01:54,961 [INFO ] step 15 ... wrote activities by region to disk.
+2019-05-26 09:01:54,961 [INFO ] .... PROCESSING COMPLETED SUCCESSFULLY.
+2019-05-26 09:07:51,245 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-26 09:07:51,381 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-26 09:07:51,381 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-26 09:07:51,492 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-26 09:07:51,574 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-26 09:07:51,835 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-26 09:07:51,884 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-26 09:07:51,890 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-26 09:07:52,147 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-26 09:07:52,369 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-26 09:08:00,661 [INFO ] setp 11 ... wrote iati-identifiers and their active years to disk.
+2019-05-26 09:08:36,195 [INFO ] step 12 ... wrote activities to disk.
+2019-05-26 09:09:20,361 [INFO ] step 13 ... wrote activities by sector to disk.
+2019-05-26 09:09:20,391 [INFO ] step 14 ... corrected some of the country names.
+2019-05-26 09:10:32,545 [INFO ] step 15 ... wrote activities by region to disk.
+2019-05-26 09:10:32,546 [INFO ] .... PROCESSING COMPLETED SUCCESSFULLY.
+2019-05-26 09:27:26,549 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-26 09:27:26,680 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-26 09:27:26,689 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-26 09:27:26,814 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-26 09:27:26,889 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-26 09:27:27,150 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-26 09:27:27,196 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-26 09:27:27,199 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-26 09:27:27,472 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-26 09:27:27,718 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-26 09:27:35,739 [INFO ] setp 11 ... wrote iati-identifiers and their active years to disk.
+2019-05-26 09:28:10,487 [INFO ] step 12 ... wrote activities to disk.
+2019-05-26 09:28:35,903 [INFO ] step 13 ... wrote activities by sector to disk.
+2019-05-26 09:28:35,909 [INFO ] step 14 ... corrected some of the country names.
+2019-05-26 09:29:13,728 [INFO ] step 15 ... wrote activities by region to disk.
+2019-05-26 09:29:13,728 [INFO ] .... PROCESSING COMPLETED SUCCESSFULLY.
+2019-05-26 23:36:48,635 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-26 23:37:14,530 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-26 23:46:06,805 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-26 23:46:24,074 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-26 23:47:29,574 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-26 23:51:59,176 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-26 23:54:02,312 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-26 23:54:12,739 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-26 23:56:23,545 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-26 23:56:35,202 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-27 11:40:30,669 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 11:40:35,668 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 11:40:36,393 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 11:40:42,882 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 11:41:01,837 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 11:57:26,993 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 11:57:50,437 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 12:00:05,277 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 12:00:40,423 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 13:20:39,023 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 13:20:39,233 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 13:20:39,233 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 13:20:39,343 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 13:20:39,413 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 13:22:04,413 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 13:22:04,453 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 13:22:04,493 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-27 13:22:04,763 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-27 13:22:04,983 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-27 13:22:13,717 [INFO ] setp 11 ... wrote iati-identifiers and their active years to disk.
+2019-05-27 13:22:47,678 [INFO ] step 12 ... wrote activities to disk.
+2019-05-27 13:23:15,187 [INFO ] step 13 ... wrote activities by sector to disk.
+2019-05-27 13:23:15,207 [INFO ] step 14 ... corrected some of the country names.
+2019-05-27 13:23:56,057 [INFO ] step 15 ... wrote activities by region to disk.
+2019-05-27 13:23:56,057 [INFO ] .... PROCESSING COMPLETED SUCCESSFULLY.
+2019-05-27 15:39:04,725 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 15:39:04,858 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 15:39:04,863 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 15:39:04,978 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 15:39:05,061 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 15:40:35,416 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 15:40:35,450 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 17:50:38,572 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 17:50:38,703 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 17:50:38,703 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 17:50:38,804 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 17:50:38,885 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 17:52:10,587 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 17:52:10,625 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 17:57:31,023 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 17:57:31,349 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 17:57:31,361 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 17:57:31,727 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 17:58:20,180 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 17:59:38,020 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:09:18,935 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 18:09:19,180 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 18:09:19,181 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 18:09:19,411 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 18:09:19,530 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 18:12:38,993 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:12:39,036 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 18:15:44,282 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 18:15:44,530 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 18:15:44,532 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 18:15:44,762 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 18:15:44,879 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 18:19:01,415 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:19:01,459 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 18:22:05,797 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 18:22:05,939 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 18:22:05,940 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 18:22:06,043 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 18:22:06,122 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 18:23:29,469 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:23:29,505 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 18:34:17,165 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 18:34:17,289 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 18:34:17,289 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 18:34:17,394 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 18:34:17,472 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 18:35:38,896 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:35:38,934 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 18:45:03,499 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 18:45:03,630 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 18:45:03,630 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 18:45:03,736 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 18:45:03,817 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 18:46:37,643 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:46:37,681 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 18:53:20,795 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 18:53:20,917 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 18:53:20,917 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 18:53:21,017 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 18:53:21,097 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 18:55:02,342 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:55:02,373 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 18:58:16,219 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 18:58:16,326 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 18:58:16,326 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 18:58:16,446 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 18:58:16,523 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 18:59:45,508 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 18:59:45,547 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 19:04:20,540 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 19:04:20,789 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 19:04:20,790 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 19:04:21,027 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 19:04:21,148 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 19:07:36,358 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 19:07:36,404 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 19:10:47,688 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 19:10:47,934 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 19:10:47,935 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 19:10:48,162 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 19:10:48,275 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 19:13:56,712 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 19:13:56,754 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 19:17:27,476 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 19:17:27,734 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 19:17:27,735 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 19:17:27,966 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 19:17:28,082 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 19:20:47,166 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 19:20:47,215 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 19:26:23,838 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 19:26:24,086 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 19:26:24,086 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 19:26:24,308 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 19:26:24,409 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 19:29:36,456 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 19:29:36,498 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 22:02:39,431 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 22:02:39,708 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 22:02:39,709 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 22:02:39,959 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 22:02:40,080 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 22:05:52,166 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 22:05:52,208 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 22:40:51,616 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 22:40:51,751 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 22:40:51,751 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 22:40:51,863 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 22:40:51,938 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 22:42:16,381 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 22:42:16,417 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 22:43:19,781 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 22:43:19,905 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 22:43:19,905 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 22:43:20,017 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 22:43:20,097 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 22:44:45,478 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 22:44:45,527 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 22:46:01,495 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 22:46:01,624 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 22:46:01,624 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 22:46:01,737 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 22:46:01,815 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 22:47:34,968 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 22:47:35,004 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 23:09:02,709 [INFO ] step 1 ... loaded files in raw dataset directory successfully.
+2019-05-27 23:09:02,957 [INFO ] step 2 ... loaded DAI definitions in the directory successfully.
+2019-05-27 23:09:02,958 [INFO ] step 3 ... correcting column names in dai sector definitions.
+2019-05-27 23:09:03,180 [INFO ] step 4 ... replaced wrong put sector-codes with the right ones.
+2019-05-27 23:09:03,333 [INFO ] step 5 ... filtered proper sector-codes and removed the improper ones.
+2019-05-27 23:11:48,730 [INFO ] step 6 ... mapped DAI's sector definitions to the sector-codes in activities.
+2019-05-27 23:11:48,799 [INFO ] step 7 ... filled the missing values in 'total-Disbursement' field.
+2019-05-27 23:12:20,612 [INFO ] step 8 ... distributed total-Disbursement into sector wise Disbursements.
+2019-05-27 23:12:21,151 [INFO ] step 9 ... mapped Implementors to Parent Group Companies.
+2019-05-27 23:12:21,630 [INFO ] step 10 ... mapped OECD shortened names to sector names.
+2019-05-27 23:12:37,775 [INFO ] setp 11 ... wrote iati-identifiers and their active years to disk.
+2019-05-27 23:13:45,659 [INFO ] step 12 ... wrote activities to disk.
+2019-05-27 23:14:36,224 [INFO ] step 13 ... wrote activities by sector to disk.
+2019-05-27 23:14:36,258 [INFO ] step 14 ... corrected some of the country names.
+2019-05-27 23:15:50,970 [INFO ] step 15 ... wrote activities by region to disk.
+2019-05-27 23:15:50,970 [INFO ] .... PROCESSING COMPLETED SUCCESSFULLY.
