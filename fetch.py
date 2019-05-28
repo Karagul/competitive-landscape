@@ -71,10 +71,10 @@ for file, url in files_to_download.items():
 """
 push to DB
 """
-# server = '52.172.141.161,1433'
-# database = 'iati_db'
-# username = 'SA'
-# password = 'Mymarketintel1357!'
+# server = 'your.ip.address.here,8080'
+# database = 'db_name'
+# username = 'user_name'
+# password = 'xxxxxxxxx'
 # cnxn = pyodbc.connect('DRIVER={SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+password+';Trusted_Connection=yes')
 # cursor = cnxn.cursor()
 #
