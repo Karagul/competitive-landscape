@@ -1,15 +1,30 @@
 from datetime import datetime
-
+from dateutil.relativedelta import relativedelta
 import requests
 from config import Config as cfg
 from tqdm import tqdm
 import sys
 import pandas as pd
+from itertools import chain
 from misc.service_logger import serviceLogger as logger
 import misc.constants as const
 
 dai_sec = pd.read_csv(cfg['PATH']['dai_sector_def_file'])
+dai_sec.columns = ['Hidden?', 'Column1', 'Level0', 'Level1_code', 'Level1', 'Level2_code', 'Level2', \
+                   'Additional_notes', 'Level3_code', 'Level3']
+# ---- fill nan in code-columns & change type to int
+dai_sec['Level1_code'].fillna(0, inplace=True)
+dai_sec['Level1_code'] = dai_sec['Level1_code'].astype(int)
+dai_sec['Level2_code'].fillna(0, inplace=True)
+dai_sec['Level2_code'] = dai_sec['Level2_code'].astype(int)
+
 curr_exch = pd.read_csv(cfg['PATH']['currency_exchange_rates_file'])
+
+
+def chainer(s):
+    # return list from series of semi-colon separated strings
+    return list(chain.from_iterable(s.str.split(';')))
+
 
 def DownloadFile(filename, url):
     """
@@ -26,6 +41,7 @@ def DownloadFile(filename, url):
                     # f.flush()
     return filename
 
+
 def rem_non_sectors(row):
     """
     remove all digits that are not 5-digit or 7-digit codes
@@ -35,6 +51,7 @@ def rem_non_sectors(row):
             if len(row) != 5:
                 row = ''
     return row
+
 
 def dai_sectors_mapping(row, sector_level, digits=5):
     """
@@ -53,6 +70,7 @@ def dai_sectors_mapping(row, sector_level, digits=5):
         logger.error(const.SECTOR_CODE_DOESNT_EXISTS, exc_info=True)
         sys.exit(0)
 
+
 def sector_disbursement(sector_percentage, total_value):
     """
     make sure the col. containing sector-percentage and total disbursement values
@@ -63,14 +81,16 @@ def sector_disbursement(sector_percentage, total_value):
     else:
         return total_value
 
+
 def camelcase_conversion(name):
     camelcase_str = []
-    if len(name.split()) > 1:  # to exclude ABREVATIONS from getting converted to CamelCase string
-        for char in name.split():
-            camelcase_str.append(char.capitalize())
-        return ' '.join(camelcase_str)
-    else:
-        return name.upper()  # return abrv. as all upper case
+    if name is not None:
+        if len(name.split()) > 1:  # to exclude ABREVATIONS from getting converted to CamelCase string
+            for char in name.split():
+                camelcase_str.append(char.capitalize())
+            return ' '.join(camelcase_str)
+        else:
+            return name.upper()  # return abrv. as all upper case
 
 
 def currency_conv_USD(date_actual, date_planned, currency_code, value):
@@ -81,7 +101,8 @@ def currency_conv_USD(date_actual, date_planned, currency_code, value):
     if isinstance(date_actual, str):  # date_sctual is not NaN
         # dates are in dd-mm-yyyy format
         year = date_actual.split('-')[0]
-    elif (isinstance(date_actual, float)) and (isinstance(date_planned, str)):  # date_actual is NaN but date_planned not NaN
+    elif (isinstance(date_actual, float)) and (isinstance(date_planned, str)):
+        # date_actual is NaN but date_planned not NaN
         year = date_planned.split('-')[0]
     else:
         year = datetime.now().year  # both are NaN, take current year
@@ -95,6 +116,7 @@ def currency_conv_USD(date_actual, date_planned, currency_code, value):
 
     exchange_value = curr_exch.loc[curr_exch['curr_codes'] == currency_code][year].values[0]
     return float(value) * exchange_value
+
 
 def currency_conv_EUR(date_actual, date_planned, currency_code, value):
     """
@@ -112,6 +134,7 @@ def currency_conv_EUR(date_actual, date_planned, currency_code, value):
     eur_exchange_value = curr_exch.loc[curr_exch['year'] == year, 'EUR'].values[0]
     return float(value) * eur_exchange_value
 
+
 def currency_conv_GBP(date, currency_code, value):
     """
     pass in the year and currency unit,
@@ -123,3 +146,48 @@ def currency_conv_GBP(date, currency_code, value):
     usd_value = float(value) * usd_exchange_value
     gbp_exchange_value = curr_exch.loc[curr_exch['year'] == year, 'GBP'].values[0]
     return float(value) * gbp_exchange_value
+
+
+def calc_no_of_yrs(start, end):
+    if start > end:
+        return start-end+1
+    else:
+        return end-start+1
+
+
+def bucketing_multilaters(org_type):
+    """
+    bucket multilaterals ['participating-org-type (Implementing)'] into 6 buckets:
+    - Bucket 1 (Universities)= "Academic, Training and Research"
+    - Bucket 2 (Foundations) = "Foundation"
+    - Bucket 3 (Govt./PPP) = "Government", "Other Public Sector", "Public Private Partnership"
+    - Bucket 4 (NGOs) = "International NGO", "National NGO", "Regional NGO"
+    - Bucket 5 (Multilaterals) – "Multilateral"
+    - Bucket 6 (Private Sector) – "Private Sector"
+    """
+    if org_type == "Academic, Training and Research":
+        return "Universities"
+    elif org_type == "Foundation":
+        return "Foundations"
+    elif org_type == "Multilateral":
+        return "Multilaterals"
+    elif org_type == "Private Sector":
+        return "Private Sectors"
+    elif org_type in ["Government", "Other Public Sector", "Public Private Partnership"]:
+        return "Government/PPP"
+    elif org_type in ["International NGO", "National NGO", "Regional NGO"]:
+        return "NGO"
+    else:
+        return "Unspecified"
+
+def projects_ended(end_date):
+    today = datetime.now()
+    five_yrs_ago_date = today - relativedelta(years=5)
+    five_yrs_from_now_date = today + relativedelta(years=5)
+    if (datetime.strptime(end_date, "%Y-%m-%d") < today) \
+    & (datetime.strptime(end_date, "%Y-%m-%d") >= five_yrs_ago_date):
+        return 'in last 5 years'
+    elif (datetime.strptime(end_date, "%Y-%m-%d") >= today):
+        return 'still active'
+    else:
+        return 'earlier than 5 years'
