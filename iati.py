@@ -67,7 +67,7 @@ class IATIdata:
         """
 
         for file in self.files.keys():
-            filename = cfg['PATH']['download_dir'] + file
+            filename = cfg['PATH']['download_dir'] + file + ".csv"
             url = self.files[file]
             try:
                 # download the files
@@ -93,7 +93,7 @@ class IATIdata:
         to pre-process the data before pushing it to SQL DB
         :return: cleansed and processed dataframe
         """
-        filename = cfg['PATH']['downlaod_dir'] + 'transaction.csv'
+        filename = cfg['PATH']['download_dir'] + 'transaction.csv'
         txn = pd.read_csv(filename)
 
         logger.info('data files loaded successfully into memory')
@@ -272,5 +272,6 @@ class IATIdata:
         # write to csv --- return as dataframe
         # filename = cfg['PATH']['save_dir'] + 'activity_txn-year.xlsx'
         # ids_and_years.to_excel(filename, sheet_name='act_id_txn_year', index=False)
+        print("DONE PROCESSING...!")
 
         return txn_df, ids_and_years
