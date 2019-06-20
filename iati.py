@@ -115,7 +115,7 @@ class IATIdata:
             'default-currency': np.repeat(txn['default-currency'], len_of_split),
             'transaction-value': np.repeat(txn['transaction-value'], len_of_split),
             'transaction_value_currency': np.repeat(txn['transaction_value_currency'], len_of_split),
-            'transaction_receiver_org': np.repeat(txn['transaction_receiver_org'], len_of_split),
+            'transaction_receiver-org': np.repeat(txn['transaction_receiver-org'], len_of_split),
             'hierarchy': np.repeat(txn['hierarchy'], len_of_split),
             'last-updated-datetime': np.repeat(txn['last-updated-datetime'], len_of_split),
             'reporting-org': np.repeat(txn['reporting-org'], len_of_split),
