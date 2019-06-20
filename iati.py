@@ -102,6 +102,7 @@ class IATIdata:
 
         # fillna in sector-code and sector-percentage
         txn['sector-code'].fillna(value='0', inplace=True)
+        txn['sector'].fillna(value='unknown', inplace=True)
         txn['sector-percentage'].fillna(value='100', inplace=True)
 
         # calculate lengths of splits
