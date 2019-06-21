@@ -84,7 +84,7 @@ def sector_disbursement(sector_percentage, total_value):
 
 def camelcase_conversion(name):
     camelcase_str = []
-    if name is not None:
+    if isinstance(name, str):
         if len(name.split()) > 1:  # to exclude ABREVATIONS from getting converted to CamelCase string
             for char in name.split():
                 camelcase_str.append(char.capitalize())
