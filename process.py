@@ -19,7 +19,8 @@ if __name__ == "__main__":
     # about 20 rows at a time.
     chunk_size = len(ids_and_yrs) // 2097
     chunk_size = 1000 if chunk_size > 1000 else chunk_size
-    print(chunk_size, '-', len(ids_and_yrs))
+    
+    #TODO: facing column maximal accomodate error, correct max length of string type columns
     # write dataframes to SQL tables
     ids_and_yrs.to_sql(name='iati_activity_over_timeline', con=engine, schema='dbo', if_exists='append', index=False,
                        index_label=list(ids_and_yrs.columns),
@@ -32,7 +33,7 @@ if __name__ == "__main__":
 
     chunk_size = len(txn_data) // 2097
     chunk_size = 1000 if chunk_size > 1000 else chunk_size
-    print(chunk_size, '-', len(txn_data))
+    # print(chunk_size, '-', len(txn_data))
     txn_data.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
                     index_label=['iati_identifier',
                                  'hierarchy',
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     txn_raw = pd.read_csv("dataset/raw_data/transaction.csv")
     chunk_size = len(txn_raw) // 2097
     chunk_size = 1000 if chunk_size > 1000 else chunk_size
-    print(chunk_size, '-', len(txn_raw))
+    # print(chunk_size, '-', len(txn_raw))
     txn_raw.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
                    index_label=["iati_identifier",
                                 "transaction_type",
