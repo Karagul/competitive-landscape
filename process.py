@@ -3,7 +3,7 @@ import sqlalchemy
 import pandas as pd
 from iati import IATIdata
 from misc.service_logger import serviceLogger as logger
-from misc.db_connection import engine
+# from misc.db_connection import engine
 
 if __name__ == "__main__":
     iati = IATIdata()
@@ -17,9 +17,9 @@ if __name__ == "__main__":
     # The problem is that SQL Server stored procedures (including system stored procedures like sp_prepexec)
     # are limited to 2100 parameters, so if the DataFrame has 100 columns then to_sql can only insert
     # about 20 rows at a time.
-    chunk_size = 2097 // len(ids_and_yrs)
+    chunk_size = len(ids_and_yrs) // 2097
     chunk_size = 1000 if chunk_size > 1000 else chunk_size
-
+    print(chunk_size, '-', len(ids_and_yrs))
     # write dataframes to SQL tables
     ids_and_yrs.to_sql(name='iati_activity_over_timeline', con=engine, schema='dbo', if_exists='append', index=False,
                        index_label=list(ids_and_yrs.columns),
@@ -30,8 +30,9 @@ if __name__ == "__main__":
 
     logger.info("Pushed activities carried out over the timeline data (activity_over_timeline) to Azure SQL database")
 
-    chunk_size = 2097 // len(txn_data)
+    chunk_size = len(txn_data) // 2097
     chunk_size = 1000 if chunk_size > 1000 else chunk_size
+    print(chunk_size, '-', len(txn_data))
     txn_data.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
                     index_label=['iati_identifier',
                                  'hierarchy',
@@ -113,8 +114,9 @@ if __name__ == "__main__":
     logger.info("Pushed transaction data (txn) to Azure SQL database")
 
     txn_raw = pd.read_csv("dataset/raw_data/transaction.csv")
-    chunk_size = 2097 // len(txn_raw)
+    chunk_size = len(txn_raw) // 2097
     chunk_size = 1000 if chunk_size > 1000 else chunk_size
+    print(chunk_size, '-', len(txn_raw))
     txn_raw.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
                    index_label=["iati_identifier",
                                 "transaction_type",
@@ -267,5 +269,5 @@ if __name__ == "__main__":
                           "default_tied_status_code": sqlalchemy.types.CHAR(50)},
                    chunksize=chunk_size, method='multi'
                    )
-    engine.close() # close the db connection
+    # engine.close() # close the db connection
     logger.info("Pushed raw transaction data (txn_raw) to Azure SQL database")
