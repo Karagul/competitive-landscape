@@ -14,16 +14,24 @@ if __name__ == "__main__":
     txn_data['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     ids_and_yrs['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
+    # The problem is that SQL Server stored procedures (including system stored procedures like sp_prepexec)
+    # are limited to 2100 parameters, so if the DataFrame has 100 columns then to_sql can only insert
+    # about 20 rows at a time.
+    chunk_size = 2097 // len(ids_and_yrs)
+    chunk_size = 1000 if chunk_size > 1000 else chunk_size
+
     # write dataframes to SQL tables
     ids_and_yrs.to_sql(name='iati_activity_over_timeline', con=engine, schema='dbo', if_exists='append', index=False,
                        index_label=list(ids_and_yrs.columns),
                        dtype={'iati-identifier': sqlalchemy.types.NVARCHAR(length=200),
                               'txn-years': sqlalchemy.types.CHAR(length=4),
                               'txn-month': sqlalchemy.types.CHAR(length=2)},
-                       chunksize=2000, method='multi')
+                       chunksize=chunk_size, method='multi')
 
     logger.info("Pushed activities carried out over the timeline data (activity_over_timeline) to Azure SQL database")
 
+    chunk_size = 2097 // len(txn_data)
+    chunk_size = 1000 if chunk_size > 1000 else chunk_size
     txn_data.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
                     index_label=['iati_identifier',
                                  'hierarchy',
@@ -99,12 +107,14 @@ if __name__ == "__main__":
                            'recipient_region_code': sqlalchemy.types.CHAR(length=20),
                            'dac_country_name': sqlalchemy.types.NVARCHAR(length=150),
                            'dac_region_name': sqlalchemy.types.NVARCHAR(length=150)},
-                    chunksize=2000, method='multi'
+                    chunksize=chunk_size, method='multi'
                     )
 
     logger.info("Pushed transaction data (txn) to Azure SQL database")
 
     txn_raw = pd.read_csv("dataset/raw_data/transaction.csv")
+    chunk_size = 2097 // len(txn_raw)
+    chunk_size = 1000 if chunk_size > 1000 else chunk_size
     txn_raw.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
                    index_label=["iati_identifier",
                                 "transaction_type",
@@ -255,7 +265,7 @@ if __name__ == "__main__":
                           "default_flow_type_code": sqlalchemy.types.CHAR(50),
                           "default_aid_type_code": sqlalchemy.types.CHAR(50),
                           "default_tied_status_code": sqlalchemy.types.CHAR(50)},
-                   chunksize=2000, method='multi'
+                   chunksize=chunk_size, method='multi'
                    )
-
+    engine.close() # close the db connection
     logger.info("Pushed raw transaction data (txn_raw) to Azure SQL database")
