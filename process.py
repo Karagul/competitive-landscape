@@ -3,7 +3,7 @@ import sqlalchemy
 import pandas as pd
 from iati import IATIdata
 from misc.service_logger import serviceLogger as logger
-# from misc.db_connection import engine
+from misc.db_connection import engine
 
 if __name__ == "__main__":
     iati = IATIdata()
