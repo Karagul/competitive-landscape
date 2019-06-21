@@ -67,7 +67,7 @@ class IATIdata:
         """
 
         for file in self.files.keys():
-            filename = cfg['PATH']['download_dir'] + file + ".csv"
+            filename = cfg['PATH']['download_dir'] + file
             url = self.files[file]
             try:
                 # download the files
@@ -97,6 +97,21 @@ class IATIdata:
         txn = pd.read_csv(filename)
 
         logger.info('data files loaded successfully into memory')
+
+        # correct default-tied-status
+        txn['default-tied-status-code'].fillna('5', inplace=True)
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].str.lower()
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('nan', '5'))
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('untied', '5'))
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('tied', '4'))
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(
+            lambda x: str(x).replace('partially tied', '3'))
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('u', '5'))
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('t', '4'))
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('p', '3'))
+        txn['default-tied-status-code'] = txn['default-tied-status-code'].astype(int)
+
+        logger.info("corrected wrongly placed tied-status-codes")
 
         # explodding one row into multiple rows
 
@@ -136,13 +151,13 @@ class IATIdata:
             'recipient-region': np.repeat(txn['recipient-region'], len_of_split),
             'recipient-region-code': np.repeat(txn['recipient-region-code'], len_of_split),
             'sector-code': chainer(txn['sector-code']),
-            'sector': chainer(txn['sector']),
+            'sector': np.repeat(txn['sector'], len_of_split),
             'sector-percentage': chainer(txn['sector-percentage']),
             'default-aid-type-code': np.repeat(txn['default-aid-type-code'], len_of_split),
-            'default-tied-status-code': np.repeat(txn['default-tied-status-code'], len_of_split)
+            'default-tied-status-code': np.repeat(txn['default-tied-status-code'], len_of_split) #todo: fillin all correct values for tied-status first
         })
 
-        logger.info('exploded single rows with multiple values into multiple rows')
+        logger.info('exploded single rows with multiple values into multiple rows with single values in each row')
 
         # replace wrongly reported sector codes
         try:
@@ -154,7 +169,7 @@ class IATIdata:
             txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('23030', '23210')
             txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('73000', '15110')
 
-            logger.info('replaced wrong put sector-codes with the right ones')
+            logger.info('replaced wrongly put sector-codes with the right ones')
         except Exception as e:
             logger.error(const.DOESNT_EXISTS, exc_info=True)
 
@@ -193,6 +208,8 @@ class IATIdata:
         txn_df['iati_sector_code'].fillna(value=0, inplace=True)
         txn_df['subsector_code'].fillna(value=0, inplace=True)
 
+        logger.info("mapped DAC sectors to IATI's sector names")
+
         # fill NaN in sector & sector-percentage
         txn_df['sector'].fillna('unknown', inplace=True)
         txn_df.loc[txn_df['sector-percentage'].isna(), 'sector-percentage'] = 100
@@ -200,6 +217,8 @@ class IATIdata:
         # calc sector-wise transaction-amount
         txn_df['sector-txn-value'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
                                                          txn_df['transaction-value'].astype(float))
+
+        logger.info("calculated sector-wise transaction value from total transaction value")
 
         # clean reporting-org names
         txn_df['reporting-org'] = txn_df['reporting-org'].apply(lambda x: x.replace('¿', '-'))
@@ -241,6 +260,8 @@ class IATIdata:
         txn_df['recipient-country'] = txn_df['recipient-country'].apply(lambda x: camelcase_conversion(x))
         txn_df['recipient_name(en)'] = txn_df['recipient_name(en)'].apply(lambda x: camelcase_conversion(x))
 
+        logger.info("correcting recipient-country name changes")
+
         # find start and end date for the activities
         # fill nan with the least possible date in pandas i.e. 1677-09-22
         txn_df['start-actual'] = txn_df['start-actual'].fillna(pd.Timestamp.min.ceil('D'))
@@ -258,10 +279,14 @@ class IATIdata:
             txn_df['end-actual'], txn_df['end-planned']
         )
 
+        logger.info("calculated the start-date and end-date for the activities")
+
         # transaction-receiver-org as implementors
         # impute participating-org (Implementing) where transaction-receiver-org missing
         txn_df['implementor'] = txn_df['transaction_receiver-org'].fillna(
             value=txn_df['participating-org (Implementing)'])
+
+        logger.info("mapped Organizations as Implementors")
 
         # timeline slicer for txn-year-month
         id_txn_yymm = txn_df.loc[~txn_df['transaction-date'].isna(), ['iati-identifier', 'transaction-date']]
@@ -273,6 +298,7 @@ class IATIdata:
         # write to csv --- return as dataframe
         # filename = cfg['PATH']['save_dir'] + 'activity_txn-year.xlsx'
         # ids_and_years.to_excel(filename, sheet_name='act_id_txn_year', index=False)
-        print("DONE PROCESSING...!")
+
+        logger.info("Processing completed successfully")
 
         return txn_df, ids_and_years
