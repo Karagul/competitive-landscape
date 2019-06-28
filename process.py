@@ -3,12 +3,14 @@ import sqlalchemy
 import pandas as pd
 from iati import IATIdata
 from misc.service_logger import serviceLogger as logger
-from misc.db_connection import engine
+from core.db_connection import engine
+from config import Config as cfg
 
 if __name__ == "__main__":
     iati = IATIdata()
-    # iati.download()
+    iati.download()
     txn_data, ids_and_yrs = iati.process()
+    filepath = cfg['PATH']['save_dir']
 
     # add date of loading the data files to DB
     txn_data['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -20,7 +22,14 @@ if __name__ == "__main__":
     chunk_size = len(ids_and_yrs) // 2097
     chunk_size = 1000 if chunk_size > 1000 else chunk_size
 
-    ids_and_yrs.to_sql(name='iati_activity_over_timeline', con=engine, schema='dbo', if_exists='append', index=False,
+    # write to CSV [iati_activity_over_timeline]
+    filename = filepath +'iati_activity_over_timeline.csv'
+    ids_and_yrs.to_csv(filename, index=False)
+
+    logger.info("Wrote iati_activity_over_timeline.csv to disk")
+
+    # write to DataBase [iati_activity_over_timeline]
+    ids_and_yrs.to_sql(name='iati_activity_over_timeline', con=engine, schema='dbo', if_exists='replace', index=False,
                        index_label=list(ids_and_yrs.columns),
                        dtype={'iati-identifier': sqlalchemy.types.NVARCHAR(length=200),
                               'txn-years': sqlalchemy.types.CHAR(length=4),
@@ -29,48 +38,18 @@ if __name__ == "__main__":
 
     logger.info("Pushed activities carried out over the timeline data (activity_over_timeline) to Azure SQL database")
 
-    chunk_size = len(txn_data) // 2097
-    chunk_size = 1000 if chunk_size > 1000 else chunk_size
+    # write to CSV [iati_txn]
+    filename = filepath + 'iati_txn.csv'
+    txn_data.to_csv(filename, index=False)
 
-    txn_data.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
-                    index_label=['iati_identifier',
-                                 'hierarchy',
-                                 'last_updated_datetime',
-                                 'sector_code',
-                                 'sector',
-                                 'sector_percentage',
-                                 'dac_sector',
-                                 'sector_category',
-                                 'txn_date',
-                                 'txn_type',
-                                 'txn_currency',
-                                 'default_currency',
-                                 'txn_value',
-                                 'txn_receiver_org',
-                                 'reporting_org',
-                                 'participating_org_funding',
-                                 'participating_org_funding_type',
-                                 'participating_org_implementing',
-                                 'participating_org_implementing_type',
-                                 'implementor',
-                                 'multilateral',
-                                 'title',
-                                 'description',
-                                 'start_actual',
-                                 'start_planned',
-                                 'end_actual',
-                                 'end_planned',
-                                 'start_date',
-                                 'end_date',
-                                 'sector_txn_value',
-                                 'default_aid_type_code',
-                                 'recipient_country',
-                                 'recipient_country_code',
-                                 'recipient_region',
-                                 'recipient_region_code',
-                                 'dac_country_name',
-                                 'dac_region_name'],
-                    dtype={'iati_identifier': sqlalchemy.types.NVARCHAR(length=200),
+    logger.info("Wrote iati_txn.csv to disk")
+
+    # write to DataBase [iati_txn]
+    # chunk_size = len(txn_data) // 2097
+    # chunk_size = 1000 if chunk_size > 1000 else chunk_size
+
+    txn_data.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='replace', index=False,
+                    dtype={'iati_identifier': sqlalchemy.types.NVARCHAR(length=400),
                            'hierarchy': sqlalchemy.types.INTEGER,
                            'last_updated_datetime': sqlalchemy.types.CHAR(length=10),
                            'sector_code': sqlalchemy.types.INTEGER,
@@ -107,91 +86,17 @@ if __name__ == "__main__":
                            'recipient_region_code': sqlalchemy.types.CHAR(length=50),
                            'dac_country_name': sqlalchemy.types.NVARCHAR(length=350),
                            'dac_region_name': sqlalchemy.types.NVARCHAR(length=350)},
-                    chunksize=chunk_size, method='multi'
+                    chunksize=36, method='multi'
                     )
 
     logger.info("Pushed transaction data (txn) to Azure SQL database")
 
+    # write to DataBase [iati_txn_raw]
     txn_raw = pd.read_csv("dataset/raw_data/transaction.csv")
-    chunk_size = len(txn_raw) // 2097
-    chunk_size = 1000 if chunk_size > 1000 else chunk_size
+    # chunk_size = len(txn_raw) // 2097
+    # chunk_size = 1000 if chunk_size > 1000 else chunk_size
 
-    txn_raw.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='append', index=False,
-                   index_label=["iati_identifier",
-                                "transaction_type",
-                                "transaction_date",
-                                "default_currency",
-                                "transaction_value",
-                                "transaction_ref",
-                                "transaction_value_currency",
-                                "transaction_value_value_date",
-                                "transaction_provider_org",
-                                "transaction_provider_org_ref",
-                                "transaction_provider_org_provider_activity_id",
-                                "transaction_receiver_org",
-                                "transaction_receiver_org_ref",
-                                "transaction_receiver_org_receiver_activity_id",
-                                "transaction_description",
-                                "transaction_flow_type_code",
-                                "transaction_finance_type_code",
-                                "transaction_aid_type_code",
-                                "transaction_tied_status_code",
-                                "transaction_disbursement_channel_code",
-                                "transaction_recipient_country_code",
-                                "transaction_recipient_country",
-                                "transaction_recipient_region_code",
-                                "transaction_recipient_region",
-                                "transaction_sector_code",
-                                "transaction_sector",
-                                "transaction_sector_vocabulary",
-                                "transaction_sector_vocabulary_code",
-                                "iati_identifier",
-                                "hierarchy",
-                                "last_updated_datetime",
-                                "default_language",
-                                "reporting_org",
-                                "reporting_org_ref",
-                                "reporting_org_type",
-                                "reporting_org_type_code",
-                                "title",
-                                "description",
-                                "activity_status_code",
-                                "start_planned",
-                                "end_planned",
-                                "start_actual",
-                                "end_actual",
-                                "participating_org (Accountable)",
-                                "participating_org_ref (Accountable)",
-                                "participating_org_type (Accountable)",
-                                "participating_org_type_code (Accountable)",
-                                "participating_org (Funding)",
-                                "participating_org_ref (Funding)",
-                                "participating_org_type (Funding)",
-                                "participating_org_type_code (Funding)",
-                                "participating_org (Extending)",
-                                "participating_org_ref (Extending)",
-                                "participating_org_type (Extending)",
-                                "participating_org_type_code (Extending)",
-                                "participating_org (Implementing)",
-                                "participating_org_ref (Implementing)",
-                                "participating_org_type (Implementing)",
-                                "participating_org_type_code (Implementing)",
-                                "recipient_country_code",
-                                "recipient_country",
-                                "recipient_country_percentage",
-                                "recipient_region_code",
-                                "recipient_region",
-                                "recipient_region_percentage",
-                                "sector_code",
-                                "sector",
-                                "sector_percentage",
-                                "sector_vocabulary",
-                                "sector_vocabulary_code",
-                                "collaboration_type_code",
-                                "default_finance_type_code",
-                                "default_flow_type_code",
-                                "default_aid_type_code",
-                                "default_tied_status_code"],
+    txn_raw.to_sql(name='iati_txn', con=engine, schema='dbo', if_exists='replace', index=False,
                    dtype={"iati_identifier": sqlalchemy.types.NVARCHAR(length=200),
                           "transaction_type": sqlalchemy.types.INTEGER,
                           "transaction_date": sqlalchemy.types.CHAR(length=10),
@@ -261,12 +166,12 @@ if __name__ == "__main__":
                           "sector_percentage": sqlalchemy.types.NVARCHAR,
                           "sector_vocabulary": sqlalchemy.types.NVARCHAR,
                           "sector_vocabulary_code": sqlalchemy.types.NVARCHAR,
-                          "collaboration_type_code": sqlalchemy.types.CHAR(50),
-                          "default_finance_type_code": sqlalchemy.types.CHAR(50),
-                          "default_flow_type_code": sqlalchemy.types.CHAR(50),
-                          "default_aid_type_code": sqlalchemy.types.CHAR(50),
-                          "default_tied_status_code": sqlalchemy.types.CHAR(50)},
-                   chunksize=chunk_size, method='multi'
+                          "collaboration_type_code": sqlalchemy.types.CHAR(length=50),
+                          "default_finance_type_code": sqlalchemy.types.CHAR(length=50),
+                          "default_flow_type_code": sqlalchemy.types.CHAR(length=50),
+                          "default_aid_type_code": sqlalchemy.types.CHAR(length=50),
+                          "default_tied_status_code": sqlalchemy.types.CHAR(length=50)},
+                   chunksize=36, method='multi'
                    )
-    engine.close() # close the db connection
+
     logger.info("Pushed raw transaction data (txn_raw) to Azure SQL database")
