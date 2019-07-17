@@ -4,7 +4,8 @@ import requests
 from tqdm import tqdm
 from config import Config as cfg
 from misc import constants as const
-from misc.helper import chainer, rem_non_sectors, dai_sectors_mapping, sector_disbursement, camelcase_conversion
+from misc.helper import chainer, rem_non_sectors, dai_sectors_mapping, \
+    sector_disbursement, camelcase_conversion, project_end_status
 from misc.service_logger import serviceLogger as logger
 
 
@@ -98,6 +99,33 @@ class IATIdata:
 
         logger.info('data files loaded successfully into memory')
 
+        # split txn-type & txn-value in to tot-commitment, tot-disbursement & tot-expenditure
+        txndf_with_txn = txn[['iati-identifier', 'transaction-date', 'transaction-type', 'transaction-value']]
+        txndf_without_txn = txn.drop(['transaction-date', 'transaction-type', 'transaction-value'], axis=1)
+
+        # pivot table on transaction-type as 'pivot-column' with transaction-value as 'values'
+
+        txndf_with_txns = txndf_with_txn.pivot_table(index=['iati-identifier', 'transaction-date'],
+                                                     columns='transaction-type', values='transaction-value',
+                                                     aggfunc='first').fillna(0).reset_index()
+
+        # sanity-check: remove other transaction-type columns formed after pivot (if any), except for types 2,3 & 4
+        for ii in range(1, 12):
+            if (ii not in [2, 3, 4]) and (ii in list(txndf_with_txns.columns)):
+                txndf_with_txns.drop([ii], axis=1, inplace=True)
+
+        # rename columns created by pivoting transaction-type
+        txndf_with_txns.columns = txndf_with_txns.columns.map(
+            {'iati-identifier': 'iati-identifier', 'transaction-date': 'transaction-date', 2: 'total-Commitment',
+             3: 'total-Disbursement', 4: 'total-Expenditure'}
+        )
+
+        # merge txn with & without pivoted-transactions into txn_df
+        txn_df = pd.merge(txndf_without_txn, txndf_with_txns, left_on='iati-identifier', right_on='iati-identifier')
+
+        # drop duplicate rows
+        txn_df.drop_duplicates(inplace=True)
+
         # correct default-tied-status
         txn['default-tied-status-code'].fillna('5', inplace=True)
         txn['default-tied-status-code'] = txn['default-tied-status-code'].str.lower()
@@ -116,45 +144,48 @@ class IATIdata:
         # explodding one row into multiple rows
 
         # fillna in sector-code and sector-percentage
-        txn['sector-code'].fillna(value='0', inplace=True)
-        txn['sector'].fillna(value='unknown', inplace=True)
-        txn['sector-percentage'].fillna(value='100', inplace=True)
+        txn_df['sector-code'].fillna(value='0', inplace=True)
+        txn_df['sector'].fillna(value='unknown', inplace=True)
+        txn_df['sector-percentage'].fillna(value='100', inplace=True)
 
         # calculate lengths of splits
-        len_of_split = txn['sector-code'].str.split(';').map(len)
+        len_of_split = txn_df['sector-code'].str.split(';').map(len)
 
         # create new df, repeating everything else and chaining the field to split to length of len_of_split
         txn_df = pd.DataFrame({
-            'iati-identifier': np.repeat(txn['iati-identifier'], len_of_split),
-            'transaction-type': np.repeat(txn['transaction-type'], len_of_split),
-            'transaction-date': np.repeat(txn['transaction-date'], len_of_split),
-            'default-currency': np.repeat(txn['default-currency'], len_of_split),
-            'transaction-value': np.repeat(txn['transaction-value'], len_of_split),
-            'transaction_value_currency': np.repeat(txn['transaction_value_currency'], len_of_split),
-            'transaction_receiver-org': np.repeat(txn['transaction_receiver-org'], len_of_split),
-            'hierarchy': np.repeat(txn['hierarchy'], len_of_split),
-            'last-updated-datetime': np.repeat(txn['last-updated-datetime'], len_of_split),
-            'reporting-org': np.repeat(txn['reporting-org'], len_of_split),
-            'title': np.repeat(txn['title'], len_of_split),
-            'description': np.repeat(txn['description'], len_of_split),
-            'activity-status-code': np.repeat(txn['activity-status-code'], len_of_split),
-            'start-planned': np.repeat(txn['start-planned'], len_of_split),
-            'start-actual': np.repeat(txn['start-actual'], len_of_split),
-            'end-planned': np.repeat(txn['end-planned'], len_of_split),
-            'end-actual': np.repeat(txn['end-actual'], len_of_split),
-            'participating-org (Implementing)': np.repeat(txn['participating-org (Implementing)'], len_of_split),
-            'participating-org-type (Implementing)': np.repeat(txn['participating-org-type (Implementing)'],
+            'iati-identifier': np.repeat(txn_df['iati-identifier'], len_of_split),
+            #     'transaction-type': np.repeat(txn_df['transaction-type'], len_of_split),
+            'transaction-date': np.repeat(txn_df['transaction-date'], len_of_split),
+            'default-currency': np.repeat(txn_df['default-currency'], len_of_split),
+            #     'transaction-value': np.repeat(txn['transaction-value'], len_of_split),
+            'total-Commitment': np.repeat(txn_df['total-Commitment'], len_of_split),
+            'total-Disbursement': np.repeat(txn_df['total-Disbursement'], len_of_split),
+            'total-Expenditure': np.repeat(txn_df['total-Expenditure'], len_of_split),
+            'transaction_value_currency': np.repeat(txn_df['transaction_value_currency'], len_of_split),
+            'transaction_receiver-org': np.repeat(txn_df['transaction_receiver-org'], len_of_split),
+            'hierarchy': np.repeat(txn_df['hierarchy'], len_of_split),
+            'last-updated-datetime': np.repeat(txn_df['last-updated-datetime'], len_of_split),
+            'reporting-org': np.repeat(txn_df['reporting-org'], len_of_split),
+            'title': np.repeat(txn_df['title'], len_of_split),
+            'description': np.repeat(txn_df['description'], len_of_split),
+            'activity-status-code': np.repeat(txn_df['activity-status-code'], len_of_split),
+            'start-planned': np.repeat(txn_df['start-planned'], len_of_split),
+            'start-actual': np.repeat(txn_df['start-actual'], len_of_split),
+            'end-planned': np.repeat(txn_df['end-planned'], len_of_split),
+            'end-actual': np.repeat(txn_df['end-actual'], len_of_split),
+            'participating-org (Implementing)': np.repeat(txn_df['participating-org (Implementing)'], len_of_split),
+            'participating-org-type (Implementing)': np.repeat(txn_df['participating-org-type (Implementing)'],
                                                                len_of_split),
-            'participating-org (Funding)': np.repeat(txn['participating-org (Funding)'], len_of_split),
-            'recipient-country': np.repeat(txn['recipient-country'], len_of_split),
-            'recipient-country-code': np.repeat(txn['recipient-country-code'], len_of_split),
-            'recipient-region': np.repeat(txn['recipient-region'], len_of_split),
-            'recipient-region-code': np.repeat(txn['recipient-region-code'], len_of_split),
-            'sector-code': chainer(txn['sector-code']),
-            'sector': np.repeat(txn['sector'], len_of_split),
-            'sector-percentage': chainer(txn['sector-percentage']),
-            'default-aid-type-code': np.repeat(txn['default-aid-type-code'], len_of_split),
-            'default-tied-status-code': np.repeat(txn['default-tied-status-code'], len_of_split) #todo: fillin all correct values for tied-status first
+            'participating-org (Funding)': np.repeat(txn_df['participating-org (Funding)'], len_of_split),
+            'recipient-country': np.repeat(txn_df['recipient-country'], len_of_split),
+            'recipient-country-code': np.repeat(txn_df['recipient-country-code'], len_of_split),
+            'recipient-region': np.repeat(txn_df['recipient-region'], len_of_split),
+            'recipient-region-code': np.repeat(txn_df['recipient-region-code'], len_of_split),
+            'sector-code': chainer(txn_df['sector-code']),
+            'sector': np.repeat(txn_df['sector'], len_of_split),
+            'sector-percentage': chainer(txn_df['sector-percentage']),
+            'default-aid-type-code': np.repeat(txn_df['default-aid-type-code'], len_of_split),
+            'default-tied-status-code': np.repeat(txn_df['default-tied-status-code'], len_of_split)
         })
 
         logger.info('exploded single rows with multiple values into multiple rows with single values in each row')
@@ -200,7 +231,7 @@ class IATIdata:
         txn_df['subsector'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level3', digits=7))
 
         # replace the NaN created due to non 5 or 7 digit sector codes with 'unknown' & 0
-        txn_df['dai_sector'].fillna(value='unknown', inplace=True)
+        txn_df['DAI_sector'].fillna(value='unknown', inplace=True)
         txn_df['sector_category'].fillna(value='unknown', inplace=True)
         txn_df['iati_sector'].fillna(value='unknown', inplace=True)
         txn_df['subsector'].fillna(value='unknown', inplace=True)
@@ -215,8 +246,14 @@ class IATIdata:
         txn_df.loc[txn_df['sector-percentage'].isna(), 'sector-percentage'] = 100
 
         # calc sector-wise transaction-amount
-        txn_df['sector-txn-value'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
-                                                         txn_df['transaction-value'].astype(float))
+        txn_df['sector-Commitment'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
+                                                          txn_df['total-Commitment'].astype(float))
+
+        txn_df['sector-Disbursement'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
+                                                            txn_df['total-Disbursement'].astype(float))
+
+        txn_df['sector-Expenditure'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
+                                                           txn_df['total-Expenditure'].astype(float))
 
         logger.info("calculated sector-wise transaction value from total transaction value")
 
@@ -279,9 +316,12 @@ class IATIdata:
             txn_df['end-actual'], txn_df['end-planned']
         )
 
-        logger.info("calculated the start-date and end-date for the activities")
+        # create timline categories, when did the project end?: 'earlier than 5 yrs', 'last 5 yrs' and 'still active'
+        txn_df['project_end_status'] = txn_df['end'].apply(lambda x: project_end_status(x))
 
-        # transaction-receiver-org as implementors
+        logger.info("tagged projects into categories for timeline as per their end_date")
+
+        # fill transaction-receiver-org as implementors but
         # impute participating-org (Implementing) where transaction-receiver-org missing
         txn_df['implementor'] = txn_df['transaction_receiver-org'].fillna(
             value=txn_df['participating-org (Implementing)'])
@@ -295,9 +335,12 @@ class IATIdata:
         ids_and_years = id_txn_yymm[['iati-identifier', 'txn-year']]
         ids_and_years = ids_and_years.drop_duplicates()
 
-        # write to csv --- return as dataframe
-        # filename = cfg['PATH']['save_dir'] + 'activity_txn-year.xlsx'
+        # # write to csv --- return as dataframe
+        # filename = cfg['PATH']['save_dir'] + 'activity_txn_year.xlsx'
         # ids_and_years.to_excel(filename, sheet_name='act_id_txn_year', index=False)
+        #
+        # filename = cfg['PATH']['save_dir'] + 'iati_txn.xlsx'
+        # txn_df.to_excel(filename, sheet_name='transactions', index=False)
 
         logger.info("Processing completed successfully")
 
