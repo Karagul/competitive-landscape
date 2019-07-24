@@ -5,7 +5,7 @@ from tqdm import tqdm
 from config import Config as cfg
 from misc import constants as const
 from misc.helper import chainer, rem_non_sectors, dai_sectors_mapping, \
-    sector_disbursement, camelcase_conversion, project_end_status
+    sector_disbursement, camelcase_conversion, project_end_status, sector_percentage_splitter
 from misc.service_logger import serviceLogger as logger
 
 
@@ -97,251 +97,374 @@ class IATIdata:
         filename = cfg['PATH']['download_dir'] + 'transaction.csv'
         txn = pd.read_csv(filename)
 
-        logger.info('data files loaded successfully into memory')
+        # filepath for saving prepared files
+        save_filepath = cfg['PATH']['save_dir']
 
-        # split txn-type & txn-value in to tot-commitment, tot-disbursement & tot-expenditure
-        txndf_with_txn = txn[['iati-identifier', 'transaction-date', 'transaction-type', 'transaction-value']]
-        txndf_without_txn = txn.drop(['transaction-date', 'transaction-type', 'transaction-value'], axis=1)
+        logger.info('dataset loaded into memory successfully.')
 
-        # pivot table on transaction-type as 'pivot-column' with transaction-value as 'values'
+        """
+        [table 1 - sector details]: iati-identifier, sector-code, sector, sector-percentage, sector-vocabulary, sector-vocabulary-code,
+            transaction_sector-code, transaction_sector, transaction_sector-vocabulary, transaction_sector-vocabulary-code
 
-        txndf_with_txns = txndf_with_txn.pivot_table(index=['iati-identifier', 'transaction-date'],
-                                                     columns='transaction-type', values='transaction-value',
-                                                     aggfunc='first').fillna(0).reset_index()
+        [table 2 - txn details]: iati-identifier, transaction-type, transaction-date, default-currency, transaction-value,
+            transaction_ref, transaction_value_currency, transaction_value_value-date
 
-        # sanity-check: remove other transaction-type columns formed after pivot (if any), except for types 2,3 & 4
-        for ii in range(1, 12):
-            if (ii not in [2, 3, 4]) and (ii in list(txndf_with_txns.columns)):
-                txndf_with_txns.drop([ii], axis=1, inplace=True)
+        [table 3 - implementor details]: iati-identifier, transaction_privider-org, transaction_provider-org_ref,
+            transaction_provider-org_provider-activity-id, transaction_receiver-org, transaction_receiver-org_ref,
+            transaction_receiver-org_receiver-activity-id, participating-org (Implementing), participating-org-ref (Implementing),
+            participating-org-type (Implementing), participating-org-type-code (Implementing)
 
-        # rename columns created by pivoting transaction-type
-        txndf_with_txns.columns = txndf_with_txns.columns.map(
-            {'iati-identifier': 'iati-identifier', 'transaction-date': 'transaction-date', 2: 'total-Commitment',
-             3: 'total-Disbursement', 4: 'total-Expenditure'}
-        )
+        [table 4 - region,country details]: iati-identifier, recipient-country-code, recipient-country, recipient-country-percentage,
+            recipient-region-code,recipient-region,recipient-region-percentage
 
-        # merge txn with & without pivoted-transactions into txn_df
-        txn_df = pd.merge(txndf_without_txn, txndf_with_txns, left_on='iati-identifier', right_on='iati-identifier')
+        [table 5 - project details]: iati-identifier, <rest all fields>
+        """
+
+        tbl_sectors = txn[['iati-identifier', 'sector-code', 'sector', 'sector-percentage', 'sector-vocabulary',
+                           'sector-vocabulary-code',
+                           'transaction_sector-code', 'transaction_sector', 'transaction_sector-vocabulary',
+                           'transaction_sector-vocabulary-code', 'transaction-date']]
+
+        tbl_transactions = txn[
+            ['iati-identifier', 'transaction-type', 'transaction-date', 'default-currency', 'transaction-value',
+             'transaction_ref', 'transaction_value_currency', 'transaction_value_value-date']]
+
+        tbl_implementors = txn[['iati-identifier', 'transaction_provider-org', 'transaction_provider-org_ref',
+                                'transaction_provider-org_provider-activity-id', 'transaction_receiver-org',
+                                'transaction_receiver-org_ref',
+                                'transaction_receiver-org_receiver-activity-id', 'participating-org (Implementing)',
+                                'participating-org-ref (Implementing)',
+                                'participating-org-type (Implementing)', 'participating-org-type-code (Implementing)']]
+
+        tbl_regions = txn[
+            ['iati-identifier', 'recipient-country-code', 'recipient-country', 'recipient-country-percentage',
+             'recipient-region-code', 'recipient-region', 'recipient-region-percentage',
+             'transaction_recipient-country-code', 'transaction_recipient-country', 'transaction_recipient-region-code',
+             'transaction_recipient-region']]
+
+        tbl_projects = txn[
+            ['iati-identifier', 'hierarchy', 'last-updated-datetime', 'default-language', 'reporting-org',
+             'reporting-org-ref', 'reporting-org-type', 'reporting-org-type-code', 'title', 'description',
+             'activity-status-code', 'start-planned', 'end-planned', 'start-actual', 'end-actual',
+             'participating-org (Accountable)', 'participating-org-ref (Accountable)',
+             'participating-org-type (Accountable)', 'participating-org-type-code (Accountable)',
+             'participating-org (Funding)', 'participating-org-ref (Funding)',
+             'participating-org-type (Funding)', 'participating-org-type-code (Funding)',
+             'participating-org (Extending)', 'participating-org-ref (Extending)',
+             'participating-org-type (Extending)', 'participating-org-type-code (Extending)',
+             'collaboration-type-code', 'default-finance-type-code', 'default-flow-type-code',
+             'default-aid-type-code', 'default-tied-status-code']]
+
+        logger.info("Spliting into 1-NF Normalization forms.")
+
+        logger.info("Processing transactions.")
+
+        tbl_transactions.drop(['transaction_value_currency', 'transaction_value_value-date'], axis=1, inplace=True)
+
+        txn_commit = tbl_transactions.loc[tbl_transactions['transaction-type'] == 2] \
+            .drop(['transaction-type'], axis=1) \
+            .rename(columns={'transaction-value': 'commitments'})
+
+        txn_disburse = tbl_transactions.loc[tbl_transactions['transaction-type'] == 3] \
+            .drop(['transaction-type'], axis=1) \
+            .rename(columns={'transaction-value': 'disbursements'})
+
+        txn_expend = tbl_transactions.loc[tbl_transactions['transaction-type'] == 4] \
+            .drop(['transaction-type'], axis=1) \
+            .rename(columns={'transaction-value': 'expenditures'})
+
+        tbl_txn = txn_disburse.merge(txn_commit,
+                                     on=['iati-identifier', 'transaction-date', 'transaction_ref', 'default-currency'],
+                                     how='outer').merge(txn_expend,
+                                                        on=['iati-identifier', 'transaction-date', 'transaction_ref',
+                                                            'default-currency'],
+                                                        how='outer')
+
+        tbl_total_txn = tbl_txn.groupby(by=['iati-identifier', 'default-currency']).sum() \
+            .reset_index() \
+            .rename(columns={'commitments': 'total-Commitment', 'disbursements': 'total-Disbursement',
+                             'expenditures': 'total-Expenditure'})
 
         # drop duplicate rows
-        txn_df.drop_duplicates(inplace=True)
+        tbl_txn.drop_duplicates(keep='first', inplace=True)
 
-        # correct default-tied-status
-        txn['default-tied-status-code'].fillna('5', inplace=True)
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].str.lower()
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('nan', '5'))
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('untied', '5'))
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('tied', '4'))
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(
-            lambda x: str(x).replace('partially tied', '3'))
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('u', '5'))
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('t', '4'))
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].apply(lambda x: str(x).replace('p', '3'))
-        txn['default-tied-status-code'] = txn['default-tied-status-code'].astype(int)
+        logger.info("Processing transactions....Done.")
 
-        logger.info("corrected wrongly placed tied-status-codes")
+        # write to csv - tbl_txn
+        tbl_txn_filename = save_filepath + "IATI_transaction_details.csv"
+        tbl_txn.to_csv(tbl_txn_filename, index=False)
 
-        # explodding one row into multiple rows
+        logger.info("Saved IATI_transaction_details.csv to disk.")
 
-        # fillna in sector-code and sector-percentage
-        txn_df['sector-code'].fillna(value='0', inplace=True)
-        txn_df['sector'].fillna(value='unknown', inplace=True)
-        txn_df['sector-percentage'].fillna(value='100', inplace=True)
+        # create dataframe for time-series slicer for activities as per txn-date
+        id_txn_timeline = tbl_txn.loc[~tbl_txn['iati-identifier'].isna(), ['iati-identifier', 'transaction-date']]
+        id_txn_timeline['txn_year'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[0])
+        id_txn_timeline['txn_month'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[1])
+        id_txn_timeline['txn_day'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[2])
+        id_txn_timeline.drop_duplicates(keep='first', inplace=True)
 
-        # calculate lengths of splits
-        len_of_split = txn_df['sector-code'].str.split(';').map(len)
+        # write to csv - projects over transaction timeline
+        proj_over_timeline_filename = save_filepath + "IATI_activities_over_timeline.csv"
+        id_txn_timeline.to_csv(proj_over_timeline_filename, index=False)
 
-        # create new df, repeating everything else and chaining the field to split to length of len_of_split
-        txn_df = pd.DataFrame({
-            'iati-identifier': np.repeat(txn_df['iati-identifier'], len_of_split),
-            #     'transaction-type': np.repeat(txn_df['transaction-type'], len_of_split),
-            'transaction-date': np.repeat(txn_df['transaction-date'], len_of_split),
-            'default-currency': np.repeat(txn_df['default-currency'], len_of_split),
-            #     'transaction-value': np.repeat(txn['transaction-value'], len_of_split),
-            'total-Commitment': np.repeat(txn_df['total-Commitment'], len_of_split),
-            'total-Disbursement': np.repeat(txn_df['total-Disbursement'], len_of_split),
-            'total-Expenditure': np.repeat(txn_df['total-Expenditure'], len_of_split),
-            'transaction_value_currency': np.repeat(txn_df['transaction_value_currency'], len_of_split),
-            'transaction_receiver-org': np.repeat(txn_df['transaction_receiver-org'], len_of_split),
-            'hierarchy': np.repeat(txn_df['hierarchy'], len_of_split),
-            'last-updated-datetime': np.repeat(txn_df['last-updated-datetime'], len_of_split),
-            'reporting-org': np.repeat(txn_df['reporting-org'], len_of_split),
-            'title': np.repeat(txn_df['title'], len_of_split),
-            'description': np.repeat(txn_df['description'], len_of_split),
-            'activity-status-code': np.repeat(txn_df['activity-status-code'], len_of_split),
-            'start-planned': np.repeat(txn_df['start-planned'], len_of_split),
-            'start-actual': np.repeat(txn_df['start-actual'], len_of_split),
-            'end-planned': np.repeat(txn_df['end-planned'], len_of_split),
-            'end-actual': np.repeat(txn_df['end-actual'], len_of_split),
-            'participating-org (Implementing)': np.repeat(txn_df['participating-org (Implementing)'], len_of_split),
-            'participating-org-type (Implementing)': np.repeat(txn_df['participating-org-type (Implementing)'],
-                                                               len_of_split),
-            'participating-org (Funding)': np.repeat(txn_df['participating-org (Funding)'], len_of_split),
-            'recipient-country': np.repeat(txn_df['recipient-country'], len_of_split),
-            'recipient-country-code': np.repeat(txn_df['recipient-country-code'], len_of_split),
-            'recipient-region': np.repeat(txn_df['recipient-region'], len_of_split),
-            'recipient-region-code': np.repeat(txn_df['recipient-region-code'], len_of_split),
-            'sector-code': chainer(txn_df['sector-code']),
-            'sector': np.repeat(txn_df['sector'], len_of_split),
-            'sector-percentage': chainer(txn_df['sector-percentage']),
-            'default-aid-type-code': np.repeat(txn_df['default-aid-type-code'], len_of_split),
-            'default-tied-status-code': np.repeat(txn_df['default-tied-status-code'], len_of_split)
-        })
+        logger.info("Saved IATI_activities_over_timeline.csv to disk.")
 
-        logger.info('exploded single rows with multiple values into multiple rows with single values in each row')
+        # write to csv - tbl_total_txn
+        tbl_total_txn_filename = save_filepath + "IATI_transaction_values.csv"
+        tbl_total_txn.to_csv(tbl_total_txn_filename, index=False)
 
-        # replace wrongly reported sector codes
-        try:
-            txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('15120', '15111')
-            txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('23010', '23110')
-            txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('23067', '23230')
-            txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('23064', '23510')
-            txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('23040', '23630')
-            txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('23030', '23210')
-            txn_df['sector-code'] = txn_df['sector-code'].astype(str).str.replace('73000', '15110')
+        logger.info("Saved IATI_transaction_values.csv to disk.")
 
-            logger.info('replaced wrongly put sector-codes with the right ones')
-        except Exception as e:
-            logger.error(const.DOESNT_EXISTS, exc_info=True)
+        logger.info("Processing implementors.")
 
-        # remove all characters from sector-codes
-        txn_df['sector-code'].fillna(value=0, inplace=True)
-        txn_df.loc[txn_df['sector-code'] == 'N/A', 'sector-code'] = 0
-        txn_df.loc[txn_df['sector-code'] == 'nan', 'sector-code'] = 0
-        txn_df['sector-code'] = pd.to_numeric(txn_df['sector-code']).astype(int)
+        tbl_implementors['implementors'] = tbl_implementors['transaction_receiver-org'].fillna(
+            value=tbl_implementors['participating-org (Implementing)'])
 
-        # remove all rows where sector-codes are not 5-digit or 7 digit codes.
-        txn_df['sector-code'] = txn_df['sector-code'].astype(int)
-        txn_df['sector-code'] = txn_df['sector-code'].apply(lambda x: rem_non_sectors(x))
+        tbl_implementors.implementors.fillna(value='Unknown', inplace=True)
 
-        # remove all rows with sector-code as '' & nan
-        txn_df = txn_df.loc[txn_df['sector-code'] != 0]
-        txn_df = txn_df.loc[~txn_df['sector-code'].isna()]
+        tbl_implementors.drop(['transaction_provider-org',
+                               'transaction_provider-org_ref',
+                               'transaction_provider-org_provider-activity-id',
+                               'transaction_receiver-org_ref', 'participating-org-type-code (Implementing)',
+                               'transaction_receiver-org_receiver-activity-id', 'participating-org-ref (Implementing)'],
+                              axis=1, inplace=True)
 
-        # mapping DAI sector definitions to activity
-        txn_df['dai_sector'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level0', digits=5))
-        txn_df['sector_category_code'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level1_code',
-                                                                                                   digits=5))
-        txn_df['sector_category'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level1', digits=5))
-        txn_df['iati_sector_code'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level2_code',
-                                                                                               digits=5))
-        txn_df['iati_sector'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level2', digits=5))
-        txn_df['subsector_code'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level3_code',
-                                                                                             digits=7))
-        txn_df['subsector'] = txn_df['sector-code'].apply(lambda x: dai_sectors_mapping(x, 'Level3', digits=7))
+        # drop duplicate rows
+        tbl_implementors.drop_duplicates(keep='first', inplace=True)
 
-        # replace the NaN created due to non 5 or 7 digit sector codes with 'unknown' & 0
-        txn_df['DAI_sector'].fillna(value='unknown', inplace=True)
-        txn_df['sector_category'].fillna(value='unknown', inplace=True)
-        txn_df['iati_sector'].fillna(value='unknown', inplace=True)
-        txn_df['subsector'].fillna(value='unknown', inplace=True)
-        txn_df['sector_category_code'].fillna(value=0, inplace=True)
-        txn_df['iati_sector_code'].fillna(value=0, inplace=True)
-        txn_df['subsector_code'].fillna(value=0, inplace=True)
+        logger.info("Processing implementors....Done.")
 
-        logger.info("mapped DAC sectors to IATI's sector names")
+        # write to csv - implementors
+        imple_filename = save_filepath + "IATI_implementors.csv"
+        tbl_implementors.to_csv(imple_filename, index=False)
 
-        # fill NaN in sector & sector-percentage
-        txn_df['sector'].fillna('unknown', inplace=True)
-        txn_df.loc[txn_df['sector-percentage'].isna(), 'sector-percentage'] = 100
+        logger.info("Saved IATI_implementors.csv to disk.")
 
-        # calc sector-wise transaction-amount
-        txn_df['sector-Commitment'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
-                                                          txn_df['total-Commitment'].astype(float))
+        logger.info("Processing regions and countries.")
 
-        txn_df['sector-Disbursement'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
-                                                            txn_df['total-Disbursement'].astype(float))
+        # clean some of the country names
+        tbl_regions['recipient-country'].replace(to_replace="Congo, The Democratic Republic Of The",
+                                                 value="Democratic Republic of the Congo", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Cã\x94Te D'Ivoire",
+                                                 value="Côte d'Ivoire", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Iran, Islamic Republic Of",
+                                                 value="Iran", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Macedonia, The Former Yugoslav Republic Of",
+                                                 value="Former Yugoslav Republic of Macedonia", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Micronesia, Federated States Of",
+                                                 value="Micronesia", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Tanzania, United Republic Of",
+                                                 value="Tanzania", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Saint Helena, Ascension And Tristan Da Cunha",
+                                                 value="Saint Helena", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Venezuela, Bolivarian Republic Of",
+                                                 value="Venezuela", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Korea, Democratic People'S Republic Of",
+                                                 value="Democratic People's Republic of Korea", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Korea, Republic Of",
+                                                 value="Democratic People's Republic of Korea", inplace=True)
+        tbl_regions['recipient-country'].replace(to_replace="Curaã\x87Ao",
+                                                 value="Curacao", inplace=True)
 
-        txn_df['sector-Expenditure'] = sector_disbursement(txn_df['sector-percentage'].astype(float),
-                                                           txn_df['total-Expenditure'].astype(float))
+        tbl_regions.drop(['recipient-country-percentage', 'recipient-region-percentage',
+                          'transaction_recipient-country-code', 'transaction_recipient-country',
+                          'transaction_recipient-region-code', 'transaction_recipient-region'], axis=1, inplace=True)
 
-        logger.info("calculated sector-wise transaction value from total transaction value")
-
-        # clean reporting-org names
-        txn_df['reporting-org'] = txn_df['reporting-org'].apply(lambda x: x.replace('¿', '-'))
-        txn_df['default-aid-type-code'].fillna('Unknown', inplace=True)
-
-        # clean country names
-        txn_df['recipient-country'].replace(to_replace="Congo, The Democratic Republic Of The",
-                                            value="Democratic Republic of the Congo", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Cã\x94Te D'Ivoire",
-                                            value="Côte d'Ivoire", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Iran, Islamic Republic Of",
-                                            value="Iran", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Macedonia, The Former Yugoslav Republic Of",
-                                            value="Former Yugoslav Republic of Macedonia", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Micronesia, Federated States Of",
-                                            value="Micronesia", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Tanzania, United Republic Of",
-                                            value="Tanzania", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Saint Helena, Ascension And Tristan Da Cunha",
-                                            value="Saint Helena", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Venezuela, Bolivarian Republic Of",
-                                            value="Venezuela", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Korea, Democratic People'S Republic Of",
-                                            value="Democratic People's Republic of Korea", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Korea, Republic Of",
-                                            value="Democratic People's Republic of Korea", inplace=True)
-        txn_df['recipient-country'].replace(to_replace="Curaã\x87Ao",
-                                            value="Curacao", inplace=True)
-
-        # load DAI definition files
-        dac_regions = pd.read_excel(cfg['PATH']['dai_region_def_file'])
+        dac_regions_filepath = cfg['PATH']['dai_region_def_file']
+        dac_regions = pd.read_excel(dac_regions_filepath, sheet_name='Sheet1')
         dac_regions.columns = ['recipient_code', 'recipient_name(en)', 'recipient_name(fr)', 'ISO_code', 'DAI_regions']
 
         # map country names to DAI region's definitions
-        txn_df['recipient-country'] = txn_df['recipient-country'].str.strip().str.lower()
-        dac_regions['recipient_name(en)'] = dac_regions['recipient_name(en)'].str.strip().str.lower()
+        tbl_regions['recipient-country-lcase'] = tbl_regions['recipient-country'].str.strip().str.lower()
+        dac_regions['recipient_name_en_lcase'] = dac_regions['recipient_name(en)'].str.strip().str.lower()
 
-        txn_df = txn_df.merge(dac_regions, how='left', left_on='recipient-country', right_on='recipient_name(en)')
-        txn_df['recipient-country'] = txn_df['recipient-country'].apply(lambda x: camelcase_conversion(x))
-        txn_df['recipient_name(en)'] = txn_df['recipient_name(en)'].apply(lambda x: camelcase_conversion(x))
+        tbl_regions = tbl_regions.merge(dac_regions, how='left', left_on='recipient-country-lcase',
+                                        right_on='recipient_name_en_lcase')
 
-        logger.info("correcting recipient-country name changes")
+        tbl_regions.drop(
+            ['recipient-country-code', 'recipient-region-code', 'recipient-country-lcase', 'recipient_code',
+             'recipient_name(fr)', 'recipient_name_en_lcase', 'recipient_name(en)'], axis=1, inplace=True)
 
-        # find start and end date for the activities
+        # drop duplicate rows
+        tbl_regions.drop_duplicates(keep='first', inplace=True)
+
+        logger.info("Processing regions and countries....Done.")
+
+        # write to csv - regions
+        region_filename = save_filepath + "IATI_region_details.csv"
+        tbl_regions.to_csv(region_filename, index=False)
+
+        logger.info("Saved IATI_region_details.csv to disk")
+
+        logger.info("Processing project details.")
+
+        # correct default-tied-status
+        tbl_projects['default-tied-status-code'].fillna('5', inplace=True)
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].str.lower()
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('nan', '5'))
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('untied', '5'))
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('tied', '4'))
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('partially tied', '3'))
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('u', '5'))
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('t', '4'))
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('p', '3'))
+        tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].astype(int)
+
         # fill nan with the least possible date in pandas i.e. 1677-09-22
-        txn_df['start-actual'] = txn_df['start-actual'].fillna(pd.Timestamp.min.ceil('D'))
-        txn_df['start-planned'] = txn_df['start-planned'].fillna(pd.Timestamp.min.ceil('D'))
-        txn_df['end-actual'] = txn_df['end-actual'].fillna(pd.Timestamp.min.ceil('D'))
-        txn_df['end-planned'] = txn_df['end-planned'].fillna(pd.Timestamp.min.ceil('D'))
+        tbl_projects['start-actual'] = tbl_projects['start-actual'].fillna(
+            datetime.strftime(pd.Timestamp.min.ceil('D'), "%d-%m-%Y"))
+        tbl_projects['start-planned'] = tbl_projects['start-planned'].fillna(
+            datetime.strftime(pd.Timestamp.min.ceil('D'), "%d-%m-%Y"))
+        tbl_projects['end-actual'] = tbl_projects['end-actual'].fillna(
+            datetime.strftime(pd.Timestamp.min.ceil('D'), "%d-%m-%Y"))
+        tbl_projects['end-planned'] = tbl_projects['end-planned'].fillna(
+            datetime.strftime(pd.Timestamp.min.ceil('D'), "%d-%m-%Y"))
 
-        # create start and end fields
-        txn_df['start'] = np.where(
-            txn_df['start-actual'].astype('datetime64[ns]') >= txn_df['start-planned'].astype('datetime64[ns]'),
-            txn_df['start-actual'], txn_df['start-planned']
+        # create 'start' & 'end' fields
+        tbl_projects['start'] = np.where(
+            tbl_projects['start-actual'].astype('datetime64[ns]') >= tbl_projects['start-planned'].astype(
+                'datetime64[ns]'),
+            tbl_projects['start-actual'], tbl_projects['start-planned']
         )
-        txn_df['end'] = np.where(
-            txn_df['end-actual'].astype('datetime64[ns]') >= txn_df['end-planned'].astype('datetime64[ns]'),
-            txn_df['end-actual'], txn_df['end-planned']
+        tbl_projects['end'] = np.where(
+            tbl_projects['end-actual'].astype('datetime64[ns]') >= tbl_projects['end-planned'].astype('datetime64[ns]'),
+            tbl_projects['end-actual'], tbl_projects['end-planned']
         )
 
         # create timline categories, when did the project end?: 'earlier than 5 yrs', 'last 5 yrs' and 'still active'
-        txn_df['project_end_status'] = txn_df['end'].apply(lambda x: project_end_status(x))
+        tbl_projects['project_end_status'] = tbl_projects['end'].apply(lambda x: project_end_status(x))
 
-        logger.info("tagged projects into categories for timeline as per their end_date")
+        # clean reporting-org names
+        tbl_projects['reporting-org'] = tbl_projects['reporting-org'].apply(lambda x: x.replace('¿', '-'))
+        tbl_projects['default-aid-type-code'].fillna('Unknown', inplace=True)
 
-        # fill transaction-receiver-org as implementors but
-        # impute participating-org (Implementing) where transaction-receiver-org missing
-        txn_df['implementor'] = txn_df['transaction_receiver-org'].fillna(
-            value=txn_df['participating-org (Implementing)'])
+        tbl_projects.drop(
+            ['default-language', 'reporting-org-ref', 'reporting-org-type', 'reporting-org-type-code', 'description',
+             'participating-org-ref (Accountable)', 'participating-org-type (Accountable)',
+             'participating-org-type-code (Accountable)', 'participating-org-type-code (Funding)',
+             'participating-org (Extending)', 'participating-org-ref (Extending)', 'participating-org-type (Extending)',
+             'participating-org-type-code (Extending)', 'collaboration-type-code', 'default-finance-type-code',
+             'default-flow-type-code'], axis=1, inplace=True)
 
-        logger.info("mapped Organizations as Implementors")
+        # drop duplicate records
+        tbl_projects.drop_duplicates(keep='first', inplace=True)
 
-        # timeline slicer for txn-year-month
-        id_txn_yymm = txn_df.loc[~txn_df['transaction-date'].isna(), ['iati-identifier', 'transaction-date']]
-        id_txn_yymm['txn-year'] = id_txn_yymm['transaction-date'].apply(lambda x: x.split('-')[0])
-        id_txn_yymm['txn-month'] = id_txn_yymm['transaction-date'].apply(lambda x: x.split('-')[1])
-        ids_and_years = id_txn_yymm[['iati-identifier', 'txn-year']]
-        ids_and_years = ids_and_years.drop_duplicates()
+        logger.info("Processing project details....Done.")
 
-        # # write to csv --- return as dataframe
-        # filename = cfg['PATH']['save_dir'] + 'activity_txn_year.xlsx'
-        # ids_and_years.to_excel(filename, sheet_name='act_id_txn_year', index=False)
-        #
-        # filename = cfg['PATH']['save_dir'] + 'iati_txn.xlsx'
-        # txn_df.to_excel(filename, sheet_name='transactions', index=False)
+        # write to csv - project details
+        proj_filename = save_filepath + "IATI_project_details.csv"
+        tbl_projects.to_csv(proj_filename, index=False)
 
-        logger.info("Processing completed successfully")
+        logger.info("Saved IATI_project_details.csv to disk.")
 
-        return txn_df, ids_and_years
+        logger.info("Processing sectors.")
+
+        tbl_sectors.drop(['sector-vocabulary', 'sector-vocabulary-code', 'transaction_sector-vocabulary',
+                          'transaction_sector-vocabulary-code'], axis=1, inplace=True)
+
+        # where txn_sector-code is present but sector-code is null, impute txn_sector-code
+        tbl_sectors['sector-code'].fillna(value=
+                                          tbl_sectors.loc[tbl_sectors['sector-code'].isna(),
+                                                          'transaction_sector-code'],
+                                          inplace=True)
+
+        # where txn_sector is present but sector is null, impute txn_sector
+        tbl_sectors['sector'].fillna(value=
+                                     tbl_sectors.loc[tbl_sectors['sector'].isna(),
+                                                     'transaction_sector'],
+                                     inplace=True)
+
+        # where sector-percentage is null but sector-code is present, impute equal %age across sectors
+        tbl_sectors.loc[(tbl_sectors['sector-percentage'].isna()) & (~tbl_sectors['sector-code'].isna()),
+                        'sector-percentage'] = tbl_sectors.loc[(tbl_sectors['sector-percentage'].isna()) &
+                                                               (~tbl_sectors['sector-code'].isna()),
+                                                               'sector-code'].apply(
+            lambda x: sector_percentage_splitter(len(x.split(';')))
+        )
+
+        # filling null for remaining sector-code & sector-percentage
+        tbl_sectors.loc[(tbl_sectors['sector-code'].isna()) & (tbl_sectors['sector-percentage'].isna()),
+                        ['sector-code', 'sector-percentage']] = '0', '100'
+
+        # fillna in sector
+        tbl_sectors['sector'].fillna(value='Unknown', inplace=True)
+
+        # drop duplicate rows
+        tbl_sectors.drop(['transaction_sector-code', 'transaction_sector'], axis=1, inplace=True)
+
+        # exploding single cell into multiple rows
+        lens = tbl_sectors['sector-code'].str.split(';').map(len)
+
+        sectors = pd.DataFrame({'iati_identifier': np.repeat(tbl_sectors['iati-identifier'], lens),
+                                'sector_code': chainer(tbl_sectors['sector-code']),
+                                'sector_percentage': chainer(tbl_sectors['sector-percentage']),
+                                'sector': np.repeat(tbl_sectors['sector'], lens),
+                                'transaction_date': np.repeat(tbl_sectors['transaction-date'], lens)
+                                })
+
+        # replace wrongly reported sector codes
+        try:
+            sectors['sector_code'] = sectors['sector_code'].astype(str).str.replace('15120', '15111')
+            sectors['sector_code'] = sectors['sector_code'].astype(str).str.replace('23010', '23110')
+            sectors['sector_code'] = sectors['sector_code'].astype(str).str.replace('23067', '23230')
+            sectors['sector_code'] = sectors['sector_code'].astype(str).str.replace('23064', '23510')
+            sectors['sector_code'] = sectors['sector_code'].astype(str).str.replace('23040', '23630')
+            sectors['sector_code'] = sectors['sector_code'].astype(str).str.replace('23030', '23210')
+            sectors['sector_code'] = sectors['sector_code'].astype(str).str.replace('73000', '15110')
+
+        except Exception as e:
+            logger.error(const.DOESNT_EXISTS, exc_info=True)
+            print("sector code doesn't exits")
+
+        # remove all characters from sector-codes
+        sectors.loc[sectors['sector_code'] == 'N/A', 'sector_code'] = 0
+        sectors.loc[sectors['sector_code'] == 'nan', 'sector_code'] = 0
+        sectors['sector_code'] = pd.to_numeric(sectors['sector_code']).astype(int)
+
+        # remove all rows where sector-codes are not 5-digit or 7 digit codes.
+        sectors['sector_code'] = sectors['sector_code'].astype(int)
+        sectors['sector_code'] = sectors['sector_code'].apply(lambda x: rem_non_sectors(x))
+
+        # remove all rows with sector-code info missing, i.e., sector-code != 0
+        sectors = sectors.loc[sectors['sector_code'] != 0]
+
+        # mapping DAI sector definitions to activity
+        sectors['dai_sector'] = sectors['sector_code'].apply(lambda x: dai_sectors_mapping(x, 'Level0', digits=5))
+        sectors['sector_category_code'] = sectors['sector_code'].apply(lambda x: dai_sectors_mapping(x, 'Level1_code',
+                                                                                                     digits=5))
+        sectors['sector_category'] = sectors['sector_code'].apply(lambda x: dai_sectors_mapping(x, 'Level1', digits=5))
+        sectors['iati_sector_code'] = sectors['sector_code'].apply(lambda x: dai_sectors_mapping(x, 'Level2_code',
+                                                                                                 digits=5))
+        sectors['iati_sector'] = sectors['sector_code'].apply(lambda x: dai_sectors_mapping(x, 'Level2', digits=5))
+        sectors['subsector_code'] = sectors['sector_code'].apply(lambda x: dai_sectors_mapping(x, 'Level3_code',
+                                                                                               digits=7))
+        sectors['subsector'] = sectors['sector_code'].apply(lambda x: dai_sectors_mapping(x, 'Level3', digits=7))
+
+        # replace the NaN created due to non 5 or 7 digit sector codes with 'unknown' & 0
+        sectors['dai_sector'].fillna(value='Unknown', inplace=True)
+        sectors['sector_category'].fillna(value='Unknown', inplace=True)
+        sectors['iati_sector'].fillna(value='Unknown', inplace=True)
+        sectors['subsector'].fillna(value='Unknown', inplace=True)
+        sectors['sector_category_code'].fillna(value=0, inplace=True)
+        sectors['iati_sector_code'].fillna(value=0, inplace=True)
+        sectors['subsector_code'].fillna(value=0, inplace=True)
+
+        # drop duplicate rows
+        sectors.drop_duplicates(keep='first', inplace=True)
+
+        logger.info("Processing sectors....Done.")
+
+        # write to csv - sectors
+        sector_filename = save_filepath + "IATI_sector_details.csv"
+        sectors.to_csv(sector_filename, index=False)
+
+        logger.info("Saved IATI_sector_details.csv to disk.")
+
+        return tbl_txn, id_txn_timeline, tbl_total_txn, tbl_implementors, tbl_regions, tbl_projects, sectors

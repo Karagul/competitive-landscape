@@ -200,12 +200,19 @@ def project_end_status(end_date):
     result = []
     if (datetime.strptime(end_date, "%Y-%m-%d") < today) \
     & (datetime.strptime(end_date, "%Y-%m-%d") >= date_five_yrs_ago): # end date between yesterday & 5 years from today
-        result.append('ended in last 5 yrs')
+        result.append('in last 5 years')
 
     if (datetime.strptime(end_date, "%Y-%m-%d") >= today):  # end date is equal to today or greater than today
-        result.append('active today')
+        result.append('still active')
 
     if (datetime.strptime(end_date,
                           "%Y-%m-%d") < date_five_yrs_ago):  # end date between -infinity to the date 5 years from today
-        result.append('ended earlier than 5 yrs')
+        result.append('earlier than 5 years')
+    return ';'.join(result)
+
+def sector_percentage_splitter(num):
+    result = []
+    value = int(100/num)
+    for ii in range(num):
+        result.append(str(value))
     return ';'.join(result)
