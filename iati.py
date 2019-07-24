@@ -197,7 +197,7 @@ class IATIdata:
         logger.info("Saved IATI_transaction_details.csv to disk.")
 
         # create dataframe for time-series slicer for activities as per txn-date
-        id_txn_timeline = tbl_txn.loc[~tbl_txn['iati-identifier'].isna(), ['iati-identifier', 'transaction-date']]
+        id_txn_timeline = tbl_txn.loc[~tbl_txn['transaction-date'].isna(), ['iati-identifier', 'transaction-date']]
         id_txn_timeline['txn_year'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[0])
         id_txn_timeline['txn_month'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[1])
         id_txn_timeline['txn_day'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[2])
