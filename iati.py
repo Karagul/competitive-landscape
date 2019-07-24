@@ -120,30 +120,28 @@ class IATIdata:
         [table 5 - project details]: iati-identifier, <rest all fields>
         """
 
-        tbl_sectors = txn[['iati-identifier', 'sector-code', 'sector', 'sector-percentage', 'sector-vocabulary',
+        tbl_sectors = txn.loc[:, ['iati-identifier', 'sector-code', 'sector', 'sector-percentage', 'sector-vocabulary',
                            'sector-vocabulary-code',
                            'transaction_sector-code', 'transaction_sector', 'transaction_sector-vocabulary',
                            'transaction_sector-vocabulary-code', 'transaction-date']]
 
-        tbl_transactions = txn[
-            ['iati-identifier', 'transaction-type', 'transaction-date', 'default-currency', 'transaction-value',
-             'transaction_ref', 'transaction_value_currency', 'transaction_value_value-date']]
+        tbl_transactions = txn.loc[:, ['iati-identifier', 'transaction-type', 'transaction-date', 'default-currency',
+                                       'transaction-value', 'transaction_ref', 'transaction_value_currency',
+                                       'transaction_value_value-date']]
 
-        tbl_implementors = txn[['iati-identifier', 'transaction_provider-org', 'transaction_provider-org_ref',
+        tbl_implementors = txn.loc[:, ['iati-identifier', 'transaction_provider-org', 'transaction_provider-org_ref',
                                 'transaction_provider-org_provider-activity-id', 'transaction_receiver-org',
-                                'transaction_receiver-org_ref',
-                                'transaction_receiver-org_receiver-activity-id', 'participating-org (Implementing)',
-                                'participating-org-ref (Implementing)',
-                                'participating-org-type (Implementing)', 'participating-org-type-code (Implementing)']]
+                                'transaction_receiver-org_ref', 'transaction_receiver-org_receiver-activity-id',
+                                       'participating-org (Implementing)', 'participating-org-ref (Implementing)',
+                                       'participating-org-type (Implementing)',
+                                       'participating-org-type-code (Implementing)']]
 
-        tbl_regions = txn[
-            ['iati-identifier', 'recipient-country-code', 'recipient-country', 'recipient-country-percentage',
-             'recipient-region-code', 'recipient-region', 'recipient-region-percentage',
-             'transaction_recipient-country-code', 'transaction_recipient-country', 'transaction_recipient-region-code',
-             'transaction_recipient-region']]
+        tbl_regions = txn.loc[:, ['iati-identifier', 'recipient-country-code', 'recipient-country', 'recipient-country-percentage',
+                              'recipient-region-code', 'recipient-region', 'recipient-region-percentage',
+                              'transaction_recipient-country-code', 'transaction_recipient-country',
+                              'transaction_recipient-region-code', 'transaction_recipient-region']]
 
-        tbl_projects = txn[
-            ['iati-identifier', 'hierarchy', 'last-updated-datetime', 'default-language', 'reporting-org',
+        tbl_projects = txn.loc[:, ['iati-identifier', 'hierarchy', 'last-updated-datetime', 'default-language', 'reporting-org',
              'reporting-org-ref', 'reporting-org-type', 'reporting-org-type-code', 'title', 'description',
              'activity-status-code', 'start-planned', 'end-planned', 'start-actual', 'end-actual',
              'participating-org (Accountable)', 'participating-org-ref (Accountable)',
