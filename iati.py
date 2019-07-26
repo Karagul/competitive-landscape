@@ -25,39 +25,40 @@ class IATIdata:
     else:
         reporting_orgs.append(filtered_orgs_list[0])
 
+    # generate API endpoints from settings.ini
     files = {}
     files_list = list(cfg['IATI']['files'].split(','))
     if len(files_list) > 0:
         for file in files_list:
             if file == 'activity':
                 files['activity'] = base_url + "activity.csv?reporting-org=" + ''.join(reporting_orgs) \
-                                    + "&start-date__gt=" + cfg['IATI']['after_date'] + "&end-date__lt=" \
-                                    + cfg['IATI']['before_date'] + "&stream=True"
+                                    + "&start-date__lt=" + cfg['IATI']['end_date'] + "&start-date__gt=" \
+                                    + cfg['IATI']['start_date'] + "&stream=True"
             elif file == 'activity_by_sector':
                 files['activity_by_sector'] = base_url + "activity/by_sector.csv?reporting-org=" \
-                                              + ''.join(reporting_orgs) + "&start-date__gt=" \
-                                              + cfg['IATI']['after_date'] + "&end-date__lt=" \
-                                              + cfg['IATI']['before_date'] + "&stream=True"
+                                              + ''.join(reporting_orgs) + "&start-date__lt=" \
+                                              + cfg['IATI']['end_date'] + "&start-date__gt=" \
+                                              + cfg['IATI']['start_date'] + "&stream=True"
             elif file == 'activity_by_region':
                 files['activity_by_region'] = base_url + "activity/by_country.csv?reporting-org=" \
-                                              + ''.join(reporting_orgs) + "&start-date__gt=" \
-                                              + cfg['IATI']['after_date'] + "&end-date__lt=" \
-                                              + cfg['IATI']['before_date'] + "&stream=True"
+                                              + ''.join(reporting_orgs) + "&start-date__lt=" \
+                                              + cfg['IATI']['end_date'] + "&end-date__gt=" \
+                                              + cfg['IATI']['start_date'] + "&stream=True"
             elif file == 'transaction':
                 files['transaction'] = base_url + "transaction.csv?reporting-org=" + ''.join(reporting_orgs) \
-                                       + "&start-date__gt=" + cfg['IATI']['after_date'] + "&end-date__lt=" \
-                                       + cfg['IATI']['before_date'] + "&stream=True"
+                                       + "&start-date__lt=" + cfg['IATI']['end_date'] + "&start-date__gt=" \
+                                       + cfg['IATI']['start_date'] + "&stream=True"
             elif file == 'transaction_by_sector':
                 files['transaction_by_sector'] = base_url + "transaction/by_sector.csv?reporting-org=" \
-                                                 + ''.join(reporting_orgs) + "&start-date__gt=" \
-                                                 + cfg['IATI']['after_date'] + "&end-date__lt=" \
-                                                 + cfg['IATI']['before_date'] + "&stream=True"
+                                                 + ''.join(reporting_orgs) + "&start-date__lt=" \
+                                                 + cfg['IATI']['end_date'] + "&start-date__gt=" \
+                                                 + cfg['IATI']['start_date'] + "&stream=True"
 
             elif file == 'transaction_by_region':
                 files['transaction_by_region'] = base_url + "transaction/by_country.csv?reporting-org=" \
-                                                 + ''.join(reporting_orgs) + "&start-date__gt=" \
-                                                 + cfg['IATI']['after_date'] + "&end-date__lt=" \
-                                                 + cfg['IATI']['before_date'] + "&stream=True"
+                                                 + ''.join(reporting_orgs) + "&start-date__lt=" \
+                                                 + cfg['IATI']['end_date'] + "&start-date__gt=" \
+                                                 + cfg['IATI']['start_date'] + "&stream=True"
             else:
                 logger.error(const.DOWNLOAD_FILE_NOT_SPECIFIED, exc_info=True)
                 exit(1)
@@ -69,7 +70,7 @@ class IATIdata:
         """
 
         for file in self.files.keys():
-            filename = cfg['PATH']['download_dir'] + file
+            filename = cfg['PATH']['download_dir'] + file + "_" + cfg['IATI']['start_date'] + "_" + cfg['IATI']['end_date'] + ".csv"
             url = self.files[file]
             try:
                 # download the files
@@ -338,7 +339,8 @@ class IATIdata:
         )
 
         # create timline categories, when did the project end?: 'earlier than 5 yrs', 'last 5 yrs' and 'still active'
-        tbl_projects['project_end_status'] = tbl_projects['end'].apply(lambda x: project_end_status(x))
+        # trying start date this time
+        tbl_projects['project_end_status'] = tbl_projects['start'].apply(lambda x: project_end_status(x))
 
         # clean reporting-org names
         tbl_projects['reporting-org'] = tbl_projects['reporting-org'].apply(lambda x: x.replace('¿', '-'))

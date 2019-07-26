@@ -4,23 +4,23 @@ import pandas as pd
 from iati import IATIdata
 from misc.service_logger import serviceLogger as logger
 from datetime import datetime
-from core.db_connection import engine
+# from core.db_connection import engine
 from config import Config as cfg
 
 if __name__ == "__main__":
     iati = IATIdata()
     iati.download()
     transaction_details, activities_over_timeline, transaction_values, implementors, regions, projects, sectors = iati.process()
-
-
-    # add date of loading the data files to DB
-    transaction_details['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    activities_over_timeline['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    transaction_values['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    implementors['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    regions['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    projects['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    sectors['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    #
+    #
+    # # add date of loading the data files to DB
+    # transaction_details['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    # activities_over_timeline['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    # transaction_values['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    # implementors['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    # regions['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    # projects['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    # sectors['db_load_date'] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
 
     """
@@ -180,4 +180,4 @@ if __name__ == "__main__":
     #
     # logger.info("Pushed raw transaction data (txn_raw) to Azure SQL database")
 
-    logger.info("Data Pre-processing done successfully.")
+    logger.info("Pipeline completely successfully.")
