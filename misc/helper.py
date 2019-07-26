@@ -193,19 +193,19 @@ def projects_ended(end_date):
         return 'earlier than 5 years'
 
 
-def project_end_status(end_date):
+def project_end_status(date_field):
     today = datetime.now()
     date_five_yrs_ago = today - relativedelta(years=5)
     # date_five_yrs_from_now = today + relativedelta(years=5)
     result = []
-    if (datetime.strptime(end_date, "%Y-%m-%d") < today) \
-    & (datetime.strptime(end_date, "%Y-%m-%d") >= date_five_yrs_ago): # end date between yesterday & 5 years from today
+    if (datetime.strptime(date_field, "%Y-%m-%d") < today) \
+    & (datetime.strptime(date_field, "%Y-%m-%d") >= date_five_yrs_ago): # end date between yesterday & 5 years from today
         result.append('in last 5 years')
 
-    if (datetime.strptime(end_date, "%Y-%m-%d") >= today):  # end date is equal to today or greater than today
+    if (datetime.strptime(date_field, "%Y-%m-%d") >= today):  # end date is equal to today or greater than today
         result.append('still active')
 
-    if (datetime.strptime(end_date,
+    if (datetime.strptime(date_field,
                           "%Y-%m-%d") < date_five_yrs_ago):  # end date between -infinity to the date 5 years from today
         result.append('earlier than 5 years')
     return ';'.join(result)
