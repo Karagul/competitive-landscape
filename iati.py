@@ -70,7 +70,7 @@ class IATIdata:
         """
 
         for file in self.files.keys():
-            filename = cfg['PATH']['download_dir'] + file + "_" + cfg['IATI']['start_date'] + "_" + cfg['IATI']['end_date'] + ".csv"
+            filename = cfg['PATH']['download_dir'] + file + ".csv"#+ "_" + cfg['IATI']['start_date'] + "_" + cfg['IATI']['end_date'] + ".csv"
             url = self.files[file]
             try:
                 # download the files
@@ -136,7 +136,7 @@ class IATIdata:
                                 'transaction_receiver-org_ref', 'transaction_receiver-org_receiver-activity-id',
                                        'participating-org (Implementing)', 'participating-org-ref (Implementing)',
                                        'participating-org-type (Implementing)',
-                                       'participating-org-type-code (Implementing)']]
+                                       'participating-org-type-code (Implementing)', 'transaction_ref']]
 
         tbl_regions = txn.loc[:, ['iati-identifier', 'recipient-country-code', 'recipient-country', 'recipient-country-percentage',
                               'recipient-region-code', 'recipient-region', 'recipient-region-percentage',
@@ -158,6 +158,9 @@ class IATIdata:
         logger.info("Spliting into 1-NF Normalization forms.")
 
         logger.info("Processing transactions.")
+        ##########################################################
+        # ---------------- transactions ------------------------ #
+        ##########################################################
 
         tbl_transactions.drop(['transaction_value_currency', 'transaction_value_value-date'], axis=1, inplace=True)
 
@@ -217,6 +220,10 @@ class IATIdata:
 
         logger.info("Processing implementors.")
 
+        #############################################################
+        #---------------------- implementers -----------------------#
+        #############################################################
+
         tbl_implementors['implementors'] = tbl_implementors['transaction_receiver-org'].fillna(
             value=tbl_implementors['participating-org (Implementing)'])
 
@@ -225,8 +232,8 @@ class IATIdata:
         tbl_implementors.drop(['transaction_provider-org',
                                'transaction_provider-org_ref',
                                'transaction_provider-org_provider-activity-id',
-                               'transaction_receiver-org_ref', 'participating-org-type-code (Implementing)',
-                               'transaction_receiver-org_receiver-activity-id', 'participating-org-ref (Implementing)'],
+                               'participating-org-type-code (Implementing)',
+                               'transaction_receiver-org_receiver-activity-id',],
                               axis=1, inplace=True)
 
         # drop duplicate rows
@@ -241,6 +248,10 @@ class IATIdata:
         logger.info("Saved IATI_implementors.csv to disk.")
 
         logger.info("Processing regions and countries.")
+
+        #########################################################
+        #------------------ regions/countries ------------------#
+        #########################################################
 
         # clean some of the country names
         tbl_regions['recipient-country'].replace(to_replace="Congo, The Democratic Republic Of The",
@@ -297,6 +308,10 @@ class IATIdata:
         logger.info("Saved IATI_region_details.csv to disk")
 
         logger.info("Processing project details.")
+
+        ################################################################
+        #--------------------- activities/projects --------------------#
+        ################################################################
 
         # correct default-tied-status
         tbl_projects['default-tied-status-code'].fillna('5', inplace=True)
@@ -366,6 +381,10 @@ class IATIdata:
         logger.info("Saved IATI_project_details.csv to disk.")
 
         logger.info("Processing sectors.")
+
+        #########################################################
+        #--------------------- sectors -------------------------#
+        #########################################################
 
         tbl_sectors.drop(['sector-vocabulary', 'sector-vocabulary-code', 'transaction_sector-vocabulary',
                           'transaction_sector-vocabulary-code'], axis=1, inplace=True)
