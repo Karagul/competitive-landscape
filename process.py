@@ -9,9 +9,9 @@ from config import Config as cfg
 
 if __name__ == "__main__":
     iati = IATIdata()
-    iati.download()
-    transaction_details, activities_over_timeline, transaction_values, implementors, regions, projects, sectors = iati.process()
-
+    # iati.download()
+    # transaction_details, activities_over_timeline, transaction_values, implementors, regions, projects, sectors = iati.process()
+    implementors = iati.process()
     #
     #
     # # add date of loading the data files to DB
