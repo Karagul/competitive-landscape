@@ -70,7 +70,7 @@ class IATIdata:
         """
 
         for file in self.files.keys():
-            filename = cfg['PATH']['download_dir'] + file + ".csv"#+ "_" + cfg['IATI']['start_date'] + "_" + cfg['IATI']['end_date'] + ".csv"
+            filename = cfg['PATH']['download_dir'] + file + ".csv"
             url = self.files[file]
             try:
                 # download the files
@@ -195,6 +195,9 @@ class IATIdata:
 
         # write to csv - tbl_txn
         tbl_txn_filename = save_filepath + "IATI_transaction_details.csv"
+        # remove '-' from field names and add '_'
+        tbl_txn.columns = tbl_txn.columns.str.replace('-','_')
+
         tbl_txn.to_csv(tbl_txn_filename, index=False)
 
         logger.info("Saved IATI_transaction_details.csv to disk.")
@@ -208,12 +211,19 @@ class IATIdata:
 
         # write to csv - projects over transaction timeline
         proj_over_timeline_filename = save_filepath + "IATI_activities_over_timeline.csv"
+
+        # remove '-' from field names and add '_'
+        id_txn_timeline.columns = id_txn_timeline.columns.str.replace('-','_'
+                                                                      )
         id_txn_timeline.to_csv(proj_over_timeline_filename, index=False)
 
         logger.info("Saved IATI_activities_over_timeline.csv to disk.")
 
         # write to csv - tbl_total_txn
         tbl_total_txn_filename = save_filepath + "IATI_transaction_values.csv"
+        # remove '-' from field names and add '_'
+        tbl_total_txn.columns = tbl_total_txn.columns.str.replace('-','_')
+
         tbl_total_txn.to_csv(tbl_total_txn_filename, index=False)
 
         logger.info("Saved IATI_transaction_values.csv to disk.")
@@ -248,6 +258,9 @@ class IATIdata:
 
         # write to csv - implementors
         imple_filename = save_filepath + "IATI_implementors.csv"
+        # remove '-' from field names and add '_'
+        tbl_implementors.columns = tbl_implementors.columns.str.replace('-','_')
+
         tbl_implementors.to_csv(imple_filename, index=False)
 
         logger.info("Saved IATI_implementors.csv to disk.")
@@ -308,6 +321,9 @@ class IATIdata:
 
         # write to csv - regions
         region_filename = save_filepath + "IATI_region_details.csv"
+        # remove '-' from field names and add '_'
+        tbl_regions.columns = tbl_regions.columns.str.replace('-', '_')
+
         tbl_regions.to_csv(region_filename, index=False)
 
         logger.info("Saved IATI_region_details.csv to disk")
@@ -381,6 +397,9 @@ class IATIdata:
 
         # write to csv - project details
         proj_filename = save_filepath + "IATI_project_details.csv"
+        # remove '-' from field names and add '_'
+        tbl_projects.columns = tbl_projects.columns.str.replace('-', '_')
+
         tbl_projects.to_csv(proj_filename, index=False)
 
         logger.info("Saved IATI_project_details.csv to disk.")
@@ -488,6 +507,9 @@ class IATIdata:
 
         # write to csv - sectors
         sector_filename = save_filepath + "IATI_sector_details.csv"
+        # remove '-' from field names and add '_'
+        sectors.columns = sectors.columns.str.replace('-', '_')
+
         sectors.to_csv(sector_filename, index=False)
 
         logger.info("Saved IATI_sector_details.csv to disk.")
