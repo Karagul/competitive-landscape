@@ -96,8 +96,13 @@ class IATIdata:
         to pre-process the data before pushing it to SQL DB
         :return: cleansed and processed dataframe
         """
-        filename = cfg['PATH']['download_dir'] + 'transaction.csv'
-        txn = pd.read_csv(filename)
+        if 'transaction' in cfg['IATI']['files']:
+            filename = cfg['PATH']['download_dir'] + 'transaction.csv'
+            txn = pd.read_csv(filename)
+
+        if 'activity' in cfg['IATI']['files']:
+            activity_filename = cfg['PATH']['download_dir'] + 'activity.csv'
+            act = pd.read_csv(activity_filename)
 
         # filepath for saving prepared files
         save_filepath = cfg['PATH']['save_dir']
@@ -144,6 +149,19 @@ class IATIdata:
                               'transaction_recipient-region-code', 'transaction_recipient-region']]
 
         tbl_projects = txn.loc[:, ['iati-identifier', 'hierarchy', 'last-updated-datetime', 'default-language', 'reporting-org',
+             'reporting-org-ref', 'reporting-org-type', 'reporting-org-type-code', 'title', 'description',
+             'activity-status-code', 'start-planned', 'end-planned', 'start-actual', 'end-actual',
+             'participating-org (Accountable)', 'participating-org-ref (Accountable)',
+             'participating-org-type (Accountable)', 'participating-org-type-code (Accountable)',
+             'participating-org (Funding)', 'participating-org-ref (Funding)',
+             'participating-org-type (Funding)', 'participating-org-type-code (Funding)',
+             'participating-org (Extending)', 'participating-org-ref (Extending)',
+             'participating-org-type (Extending)', 'participating-org-type-code (Extending)',
+             'collaboration-type-code', 'default-finance-type-code', 'default-flow-type-code',
+             'default-aid-type-code', 'default-tied-status-code']]
+
+        if len(act) > 0:
+            act_tbl_projects = act.loc[:, ['iati-identifier', 'hierarchy', 'last-updated-datetime', 'default-language', 'reporting-org',
              'reporting-org-ref', 'reporting-org-type', 'reporting-org-type-code', 'title', 'description',
              'activity-status-code', 'start-planned', 'end-planned', 'start-actual', 'end-actual',
              'participating-org (Accountable)', 'participating-org-ref (Accountable)',
@@ -334,7 +352,7 @@ class IATIdata:
         #--------------------- activities/projects --------------------#
         ################################################################
 
-        # correct default-tied-status
+        # correct default-tied-status in 'transaction' dataframe
         tbl_projects['default-tied-status-code'].fillna('5', inplace=True)
         tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].str.lower()
         tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
@@ -352,6 +370,26 @@ class IATIdata:
         tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].apply(
             lambda x: str(x).replace('p', '3'))
         tbl_projects['default-tied-status-code'] = tbl_projects['default-tied-status-code'].astype(int)
+
+        # correct default-tied-status in 'activity' dataframe
+        act_tbl_projects['default-tied-status-code'].fillna('5', inplace=True)
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].str.lower()
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('nan', '5'))
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('untied', '5'))
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('tied', '4'))
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('partially tied', '3'))
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('u', '5'))
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('t', '4'))
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].apply(
+            lambda x: str(x).replace('p', '3'))
+        act_tbl_projects['default-tied-status-code'] = act_tbl_projects['default-tied-status-code'].astype(int)
+
 
         # fill nan with the least possible date in pandas i.e. 1677-09-22
         tbl_projects['start-actual'] = tbl_projects['start-actual'].fillna(
@@ -376,13 +414,27 @@ class IATIdata:
 
         # create timline categories, when did the project end?: 'earlier than 5 yrs', 'last 5 yrs' and 'still active'
         # trying start date this time
-        tbl_projects['project_end_status'] = tbl_projects['start'].apply(lambda x: project_end_status(x))
+        # tbl_projects['project_end_status'] = tbl_projects['start'].apply(lambda x: project_end_status(x))
 
-        # clean reporting-org names
+        # clean reporting-org names in 'transaction' dataframe
         tbl_projects['reporting-org'] = tbl_projects['reporting-org'].apply(lambda x: x.replace('¿', '-'))
         tbl_projects['default-aid-type-code'].fillna('Unknown', inplace=True)
 
+        # clean reporting-org names in 'activity' dataframe
+        act_tbl_projects['reporting-org'] = act_tbl_projects['reporting-org'].apply(lambda x: x.replace('¿', '-'))
+        act_tbl_projects['default-aid-type-code'].fillna('Unknown', inplace=True)
+
+        # drop unnecessary fields from 'transaction' dataframe
         tbl_projects.drop(
+            ['default-language', 'reporting-org-ref', 'reporting-org-type', 'reporting-org-type-code', 'description',
+             'participating-org-ref (Accountable)', 'participating-org-type (Accountable)',
+             'participating-org-type-code (Accountable)', 'participating-org-type-code (Funding)',
+             'participating-org (Extending)', 'participating-org-ref (Extending)', 'participating-org-type (Extending)',
+             'participating-org-type-code (Extending)', 'collaboration-type-code', 'default-finance-type-code',
+             'default-flow-type-code'], axis=1, inplace=True)
+
+        # drop unnecessary fields from 'activity' dataframe
+        act_tbl_projects.drop(
             ['default-language', 'reporting-org-ref', 'reporting-org-type', 'reporting-org-type-code', 'description',
              'participating-org-ref (Accountable)', 'participating-org-type (Accountable)',
              'participating-org-type-code (Accountable)', 'participating-org-type-code (Funding)',
@@ -392,7 +444,16 @@ class IATIdata:
 
         # drop duplicate records
         tbl_projects.drop_duplicates(keep='first', inplace=True)
+        act_tbl_projects.drop_duplicates(keep='first', inplace=True)
 
+        # append activity's record missing from transaction into transaction dataframe
+        tbl_projects = tbl_projects.append(
+            act_tbl_projects.loc[(~act_tbl_projects['iati-identifier'].isin(tbl_projects['iati-identifier'])) \
+                             & (act_tbl_projects['hierarchy'] == 1)].reset_index().drop(columns=['index'],
+                                                                                    axis=1), ignore_index=True)
+
+        tbl_projects.drop_duplicates(keep='first', inplace=True)
+        
         logger.info("Processing project details....Done.")
 
         # write to csv - project details
