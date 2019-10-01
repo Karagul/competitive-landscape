@@ -86,7 +86,6 @@ class IATIdata:
                                 # f.flush()
                 log_msg = "Downloaded " + file + " successfully."
                 logger.info(log_msg)
-                return 1
             except Exception as e:
                 logger.error(const.INTERNAL_SERV_ERROR, exc_info=True)
                 exit(1)
@@ -221,18 +220,17 @@ class IATIdata:
         logger.info("Saved IATI_transaction_details.csv to disk.")
 
         # create dataframe for time-series slicer for activities as per txn-date
-        id_txn_timeline = tbl_txn.loc[~tbl_txn['transaction-date'].isna(), ['iati-identifier', 'transaction-date']]
-        id_txn_timeline['txn_year'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[0])
-        id_txn_timeline['txn_month'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[1])
-        id_txn_timeline['txn_day'] = id_txn_timeline['transaction-date'].apply(lambda x: x.split('-')[2])
+        id_txn_timeline = tbl_txn.loc[~tbl_txn['transaction_date'].isna(), ['iati_identifier', 'transaction_date']]
+        id_txn_timeline['txn_year'] = id_txn_timeline['transaction_date'].apply(lambda x: x.split('-')[0])
+        id_txn_timeline['txn_month'] = id_txn_timeline['transaction_date'].apply(lambda x: x.split('-')[1])
+        id_txn_timeline['txn_day'] = id_txn_timeline['transaction_date'].apply(lambda x: x.split('-')[2])
         id_txn_timeline.drop_duplicates(keep='first', inplace=True)
 
         # write to csv - projects over transaction timeline
         proj_over_timeline_filename = save_filepath + "IATI_activities_over_timeline.csv"
 
         # remove '-' from field names and add '_'
-        id_txn_timeline.columns = id_txn_timeline.columns.str.replace('-','_'
-                                                                      )
+        id_txn_timeline.columns = id_txn_timeline.columns.str.replace('-','_')
         id_txn_timeline.to_csv(proj_over_timeline_filename, index=False)
 
         logger.info("Saved IATI_activities_over_timeline.csv to disk.")
@@ -453,7 +451,7 @@ class IATIdata:
                                                                                     axis=1), ignore_index=True)
 
         tbl_projects.drop_duplicates(keep='first', inplace=True)
-        
+
         logger.info("Processing project details....Done.")
 
         # write to csv - project details
