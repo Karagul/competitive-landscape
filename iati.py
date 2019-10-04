@@ -414,6 +414,30 @@ class IATIdata:
         # trying start date this time
         # tbl_projects['project_end_status'] = tbl_projects['start'].apply(lambda x: project_end_status(x))
 
+        logger.info("Processing project over timeline")
+        # create projects/activities over timeline
+        activit_over_timeline = pd.DataFrame(columns=['iati_identifier', 'year'])
+        ix = 0
+
+        for _, row in tbl_projects[['iatiidentifier','start','end']].iterrows():
+            st_yr = int(row['start'].split('-')[0])
+            end_yr = int(row['end'].split('-')[0])
+
+            for year in range(st_yr, end_yr+1):
+
+                activit_over_timeline.loc[ix, 'iati_identifier'] = row['iati-identifier']
+                activit_over_timeline.loc[ix, 'year'] = year
+                ix = ix + 1
+
+        logger.info("Processing project over timeline....Done.")
+
+        # write to csv - projects over timeline
+        filename = save_filepath + "IATI_project_over_timeline.csv"
+        activit_over_timeline.to_csv(filename, index=False)
+
+        logger.info("Saved IATI_project_over_timeline.csv to disk.")
+
+
         # clean reporting-org names in 'transaction' dataframe
         tbl_projects['reporting-org'] = tbl_projects['reporting-org'].apply(lambda x: x.replace('¿', '-'))
         tbl_projects['default-aid-type-code'].fillna('Unknown', inplace=True)
@@ -448,7 +472,7 @@ class IATIdata:
         tbl_projects = tbl_projects.append(
             act_tbl_projects.loc[(~act_tbl_projects['iati-identifier'].isin(tbl_projects['iati-identifier'])) \
                              & (act_tbl_projects['hierarchy'] == 1)].reset_index().drop(columns=['index'],
-                                                                                    axis=1), ignore_index=True)
+                                                                                    axis=1), ignore_index=True, sort=True)
 
         tbl_projects.drop_duplicates(keep='first', inplace=True)
 
