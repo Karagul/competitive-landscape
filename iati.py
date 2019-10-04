@@ -419,21 +419,24 @@ class IATIdata:
         activit_over_timeline = pd.DataFrame(columns=['iati_identifier', 'year'])
         ix = 0
 
-        for _, row in tbl_projects[['iatiidentifier','start','end']].iterrows():
-            st_yr = int(row['start'].split('-')[0])
-            end_yr = int(row['end'].split('-')[0])
+        act_over_years = tbl_projects[['iati-identifier','start','end']].copy()
+        act_over_years.rename(columns={'iati-identifier':'iati_identifier'}, inplace=True)
 
-            for year in range(st_yr, end_yr+1):
+        act_over_years['start_year'] = pd.to_datetime(act_over_years['start']).dt.year
+        act_over_years['end_year'] = pd.to_datetime(act_over_years['end']).dt.year
 
-                activit_over_timeline.loc[ix, 'iati_identifier'] = row['iati-identifier']
-                activit_over_timeline.loc[ix, 'year'] = year
-                ix = ix + 1
+        id_list = []
+        active_yrs = []
+        for row in act_over_years.itertuples():
+            for year in range(row.start_year, row.end_year+1):
+                id_list.append(row.iati_identifier)
+                active_yrs.append(year)
 
         logger.info("Processing project over timeline....Done.")
 
         # write to csv - projects over timeline
         filename = save_filepath + "IATI_project_over_timeline.csv"
-        activit_over_timeline.to_csv(filename, index=False)
+        act_over_years.to_csv(filename, index=False)
 
         logger.info("Saved IATI_project_over_timeline.csv to disk.")
 
